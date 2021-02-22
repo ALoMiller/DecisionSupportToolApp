@@ -200,8 +200,13 @@ function(input, output, session) {
         hot_col(col = "Shapefile", strict = F, type = "autocomplete", source = shapefile_names) %>% 
         hot_col(col = "Months", type = "autocomplete", source = Months) %>%
         hot_col(col = "Percentage", type = "numeric", strict = F) %>% 
-        hot_col(col = "TrapRedistributionArea", type = "autocomplete", source = TrapRedistributionArea) %>% 
-        hot_col(col = "TrapRedistributionMethod", type = "autocomplete", source = TrapRedistributionMethod)
+        hot_col(col = "StringRegulation", type = "autocomplete", source = StringRegulation) %>% 
+        hot_col(col = "StringLen", type = "autocomplete", source = StringLen) %>%
+        hot_col(col = "MaxRopeStrength", type = "numeric", strict = F) %>%
+        hot_col(col = "BuoylineDevice", type = "autocomplete", source = BuoylineDevice) %>%
+        hot_col(col = "RopelessDevice", type = "autocomplete", source = RopelessDevice) %>%
+        hot_col(col = "GearCap", type = "numeric", strict = F) %>%
+        hot_col(col = "MaxGearSnglLn", type = "numeric", strict = F) 
       
       #Show filled template if input file is chosen
     } else {
@@ -220,9 +225,13 @@ function(input, output, session) {
         hot_col(col = "Shapefile", strict = F, type = "autocomplete", source = shapefile_names) %>% 
         hot_col(col = "Months", type = "autocomplete", source = Months) %>%
         hot_col(col = "Percentage", type = "numeric", strict = F) %>% 
-        hot_col(col = "TrapRedistributionArea", type = "autocomplete", source = TrapRedistributionArea) %>% 
-        hot_col(col = "TrapRedistributionMethod", type = "autocomplete", source = TrapRedistributionMethod)
-
+        hot_col(col = "StringRegulation", type = "autocomplete", source = StringRegulation) %>% 
+        hot_col(col = "StringLen", type = "autocomplete", source = StringLen) %>%
+        hot_col(col = "MaxRopeStrength", type = "numeric", strict = F) %>%
+        hot_col(col = "BuoylineDevice", type = "autocomplete", source = BuoylineDevice) %>%
+        hot_col(col = "RopelessDevice", type = "autocomplete", source = RopelessDevice) %>%
+        hot_col(col = "GearCap", type = "numeric", strict = F) %>%
+        hot_col(col = "MaxGearSnglLn", type = "numeric", strict = F) 
     }
   })
   

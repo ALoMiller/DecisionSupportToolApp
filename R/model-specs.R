@@ -1,41 +1,49 @@
 Action <- c("Closure",
             "Constraint_Fishery",
             "Constraint_Spatial",
-            "EndlineModification",
-            "MinTrawlLength",
-            "TrapCap",
-            "TrapReduction")
-LMA <- c("All",
-          "A1",
+            "GearReduction",
+            "GearCap",
+            "MaxRopeStrength",
+            "MaxTrapsWSingleLine",
+            "NoAction",
+            "RopelessDevice",
+            "StringLength")
+LMA <- c("A1",
           "A2",
           "A2_3overlap",
-          "A3")
-State <- c("All",
-            "ME",
+          "A3",
+          "OCC")
+State <- c("ME",
             "NH",
             "MA")
-Fishery <- c("All",
-             "NonExempt",
+Fishery <- c("NonExempt",
              "Exempt",
              "Midshelf_Lobster",
              "Midshelf_Crab",
              "Offshore_Lobster",
-             "Offshore_Crab")
+             "Offshore_Crab",
+             "EverythingButExempt")
+RopelessDevice <- c("TimedRelease",
+                    "AcousticRelease")
 # select multiple
 StatArea <- c(464, 465, 511,
               512, 513, 514,
               515, 521, 522,
-              561, 562, 537,
-              538, 539)
-TrapRedistributionArea <- c("WithinStatArea",
-                            "AdjacentStatAreas",
-                            "AcrossLMA",
-                            "None")
-TrapRedistributionMethod <- c("Even",
-                              "IDW")
+              525, 526, 561,
+              562, 537, 538,
+              539)
+StringRegulation <- c("Min",
+                     "Max",
+                     "Exactly")
+
 Months <- 1:12
+BuoylineDevice <- ""
+MaxGearSnglLn <- ""
+MaxRopeStrength <- ""
 Percentage <- ""
 Shapefile <- ""
+GearCap <- ""
+StringLen = ""
 #Data frame to hold 
 DF <- data.frame(Action = as.character(rep(NA,10)),
                  LMA = as.character(rep(NA, 10)),
@@ -45,8 +53,13 @@ DF <- data.frame(Action = as.character(rep(NA,10)),
                  Shapefile = as.character(rep(NA, 10)),
                  Months = as.character(rep(NA, 10)),
                  Percentage = as.character(rep(NA, 10)),
-                 TrapRedistributionArea = as.character(rep(NA, 10)),
-                 TrapRedistributionMethod = as.character(rep(NA, 10)))
+                 StringRegulation = as.character(rep(NA, 10)),
+                 StringLen = as.character(rep(NA, 10)),
+                 MaxRopeStrength = as.character(rep(NA, 10)),
+                 BuoylineDevice = as.character(rep(NA, 10)),
+                 RopelessDevice = as.character(rep(NA, 10)),
+                 GearCap = as.character(rep(NA, 10)),
+                 MaxGearSnglLn = as.character(rep(NA, 10)))
 
 # #get existing scenarios for listing as scenaerio inputs
 existing_input_csvs <- list.files(here::here("InputSpreadsheets"))

@@ -29,12 +29,11 @@ setZoom <- shinyEffects::setZoom
 #User interface
 
 ui <- dashboardPage(
-  dashboardHeader(title = "ALW TRT Scenario Planning", titleWidth = 300),
+  dashboardHeader(title = "DST Scenario Planning", titleWidth = 300),
   dashboardSidebar(    
     sidebarMenu(
     menuItem("Specify Model", tabName = "specify_model", icon = icon("dashboard")),
-    menuItem("View Tables", tabName = "view_tables", icon = icon("th")),
-    menuItem("View Plots", tabName = "view_plots", icon = icon("map-marker")),
+    menuItem("View Result Tables & Figures", tabName = "view_output", icon = icon("chart-area")),
     menuItem("Visualize Areas", tabName = "visualize_areas", icon = icon("binoculars")),
     menuItem("Additional Info", tabName = "view_help", icon = icon("question"))
     )
@@ -78,112 +77,23 @@ ui <- dashboardPage(
                   textOutput("run-text")
                 )
               ),
-      tabItem(tabName = "view_plots",
-        fluidRow(
-          box(
-            selectInput("select_plots", label = "Select plots to view:", selected = "Total Threat",
-                        choices = list(
-                          "Trap Density",
-                          "Trawl Length",
-                          "Line Density",
-                          "Line Diameter",
-                          "Mean Threat",
-                          "Total Threat",
-                          "Risk Score",
-                          "Whale Habitat"
-                          )
-                        ),
-            checkboxInput("log_plots", label = "Log transform?", FALSE)
-          )
-        ),
-        fluidRow(
-          textOutput("plot_scenario_name"),
-            box(
-              h4("Default model output:"),
-              plotOutput("plot1",click="plot1_click",
-                         dblclick = "plot1_dblclick",
-                         height = "100%",
-                         brush = brushOpts(
-                           id = "plot1_brush",
-                           resetOnNew = TRUE
-                )
-              )
-            ),
-            box(
-              h4("Scenario model output:"),
-              plotOutput("plot2", click="plot2_click",
-                         dblclick = "plot2_dblclick",
-                         height = "100%",
-                         brush = brushOpts(
-                           id = "plot2_brush",
-                           resetOnNew = TRUE
-                )
-              )
-            )
-          )
-        ),
-      
-      tabItem(tabName = "view_tables",
+      tabItem(tabName = "view_output",
               textOutput("table_scenario_name"),
-              fluidRow(
-                box(width = 5,
-                    h4("Whale Density"),
-                    DT::dataTableOutput('WhaleDensity')),
-                box(width = 5,
-                    h4("Gear Fished (post-reduction)"),
-                    DT::dataTableOutput('GearFished_PostReduction')),
-                box(width = 5,
-                    h4("Gear Fished (post-cap)"),
-                    DT::dataTableOutput('GearFished_PostCap')),
-                box(width = 5,
-                    h4("Gear Fished (post-closure)"),
-                    DT::dataTableOutput('GearFished_PostClosure')),
-                box(width = 5,
-                    h4("Mean Line Threat (co-occurence)"),
-                    DT::dataTableOutput('MeanLineThreat_CoOccurrence')),
-                box(width = 5,
-                    h4("Mean Line Threat Lower (threat)"),
-                    DT::dataTableOutput('MeanLineThreat_Threat_Lower')),
-                box(width = 5,
-                    h4("Relative Risk (co-occurence)"),
-                    DT::dataTableOutput('RelativeRisk_CoOccurrence')),
-                box(width = 5,
-                    h4("Relative Risk Lower (threat)"),
-                    DT::dataTableOutput('RelativeRisk_Threat_Lower'))
-              ),
-              fluidRow(
-                box(width = 5,
-                    h4("Number of Strings"),
-                    DT::dataTableOutput('NumStrings')),
-                box(width = 5,
-                    h4("Mean String Length"),
-                    DT::dataTableOutput('MeanStringLength')),
-                box(width = 5,
-                    h4("Number of Vertical Lines"),
-                    DT::dataTableOutput('NumVerticalLines')),
-                box(width = 5,
-                    h4("Rope Strength"),
-                    DT::dataTableOutput('RopeStrength')),
-                box(width = 5,
-                    h4("Mean Line Threat (threat)"),
-                    DT::dataTableOutput('MeanLineThreat_Threat')),
-                box(width = 5,
-                    h4("Mean Line Threat Upper (threat)"),
-                    DT::dataTableOutput('MeanLineThreat_Threat_Upper')),
-                box(width = 5,
-                    h4("Total Gear Threat (threat)"),
-                    DT::dataTableOutput('TotalGearThreat_Threat')),
-                box(width = 5,
-                    h4("Total Gear Threat Upper (threat)"),
-                    DT::dataTableOutput('TotalGearThreat_Threat_Upper')),
-                box(width = 5,
-                    h4("Relative Risk (threat)"),
-                    DT::dataTableOutput('RelativeRisk_Threat')),
-                box(width = 5,
-                    h4("Relative Risk Upper (threat)"),
-                    DT::dataTableOutput('RelativeRisk_Threat_Upper'))
-              )
-      ),
+              tabsetPanel(type='tab',
+                # using iframe along with tags() within tab to display pdf with scroll, height and width could be adjusted
+                tabPanel("Tables", 
+                         tags$iframe(style="height:400px; width:100%; scrolling=yes", 
+                                     src="test1_Tables.pdf")),
+                tabPanel("Gear Redistribution Figures", 
+                         tags$iframe(style="height:400px; width:100%; scrolling=yes", 
+                                     src="test1_GearRedistributionFigures.pdf")),
+                tabPanel("Scenario Figures", 
+                         tags$iframe(style="height:400px; width:100%; scrolling=yes", 
+                                     src="test1_ScenarioFigures.pdf")),
+                tabPanel("Threat DistributionsScenario Figures", 
+                         tags$iframe(style="height:400px; width:100%; scrolling=yes", 
+                                     src="test1_ScenarioFigures.pdf"))
+              )),
       
       tabItem(tabName = "visualize_areas",
               fluidPage(
@@ -213,7 +123,7 @@ ui <- dashboardPage(
           checkboxInput(inputId='shapefile12',label="NEA_WGOM",value = F),
           checkboxInput(inputId='shapefile13',label="StatAreas",value = F),
           checkboxInput(inputId='shapefile14',label="OffshoreA",value = F)
-         # checkboxInput(inputId='shapefile15',label="TinyWedge",value = F)
+          #checkboxInput(inputId='shapefile15',label="TinyWedge",value = F)
           #checkboxInput(inputId='shapefile14',label="StatAreas",value = F)
         ) 
        )

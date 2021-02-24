@@ -1,7 +1,7 @@
   rm(list=ls())
   
   ## set working directory
-  HD="//net/work4/LobsterGroup/Management/RightWhales/DecisionSupportTool"; setwd(HD)
+  # HD="//net/work4/LobsterGroup/Management/RightWhales/DecisionSupportTool"; setwd(HD)
   HD=here::here()
   ## source decision support function
   Version="DecisionSupportTool_V3.0.2.R"

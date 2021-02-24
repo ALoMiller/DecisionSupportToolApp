@@ -463,7 +463,9 @@ function(input, output, session) {
     print(paste0("Results in ",scenario_path))
     return(scenario_path)
   }
-  
+  output$newtabs <- renderUI({
+    
+  }) #adds pdf outputs for figures and tables
   #Implement the validation function and make the filenames reactive  
   matched_tables <- reactive({
     # Make sure requirements are met before looking for results
@@ -473,13 +475,13 @@ function(input, output, session) {
     find_tables()
   })
   
-  output$RelativeRisk = DT::renderDT({  #Tables loaded from the proper Scenario folder
+  output$WhaleDensity = DT::renderDT({  #Tables loaded from the proper Scenario folder
     # dat <- read.csv("Scenarios/ExampleRun/ExampleRun_OutputData.csv", stringsAsFactors = FALSE) %>% 
     dat <- read.csv(matched_tables(), stringsAsFactors = FALSE) %>%
       dplyr::mutate(Default = round(Default, 0),
                     Scenario = round(Scenario, 0),
                     Reduction = paste0(round(Reduction, 2) * 100, "%")) %>% 
-      dplyr::filter(Variable == "RelativeRisk") %>% 
+      dplyr::filter(Variable == "WhaleDensity") %>% 
       dplyr::select(-Variable) %>% 
       DT::datatable(., rownames = FALSE,
                     options = list(pageLength = 13, 
@@ -491,13 +493,13 @@ function(input, output, session) {
                     ))
   })
   
-  output$VerticalLines = DT::renderDT({  #Tables loaded from the proper Scenario folder
+  output$GearFished_PostReduction = DT::renderDT({  #Tables loaded from the proper Scenario folder
     # dat <- read.csv("Scenarios/ExampleRun/ExampleRun_OutputData.csv", stringsAsFactors = FALSE) %>% 
     dat <- read.csv(matched_tables(), stringsAsFactors = FALSE) %>%
       dplyr::mutate(Default = round(Default, 0),
                     Scenario = round(Scenario, 0),
                     Reduction = paste0(round(Reduction, 2) * 100, "%")) %>% 
-      dplyr::filter(Variable == "VerticalLines") %>% 
+      dplyr::filter(Variable == "GearFished_PostReduction") %>% 
       dplyr::select(-Variable) %>% 
       DT::datatable(., rownames = FALSE,
                     options = list(pageLength = 13, 

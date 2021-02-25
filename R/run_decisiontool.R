@@ -1,18 +1,3 @@
-# This is run from shiny 
-#
-# The following lines need to be placed in shiny
-#
-#l ibrary(rgdal)
-# library(sp)
-# library(maps)
-# library(maptools)
-# library(grid)
-# library(gtable)
-# library(gridExtra)
-# library(maptools)
-# HD <- here::here()
-# source(here::here("function_DecisionSupportTool_V3.0.2.R"))
-#
 Version="DecisionSupportTool_V3.0.2.R"
 
 run_decisiontool <- function(HD=here::here(),InputSpreadsheetName="ScenarioTemplate_V3.0.0.csv"){

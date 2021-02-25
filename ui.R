@@ -80,19 +80,15 @@ ui <- dashboardPage(
       tabItem(tabName = "view_output",
               textOutput("table_scenario_name"),
               tabsetPanel(type='tab',
-                # using iframe along with tags() within tab to display pdf with scroll, height and width could be adjusted
-                tabPanel("Tables", 
-                         tags$iframe(style="height:400px; width:100%; scrolling=yes", 
-                                     src="test1_Tables.pdf")),
-                tabPanel("Gear Redistribution Figures", 
-                         tags$iframe(style="height:400px; width:100%; scrolling=yes", 
-                                     src="test1_GearRedistributionFigures.pdf")),
-                tabPanel("Scenario Figures", 
-                         tags$iframe(style="height:400px; width:100%; scrolling=yes", 
-                                     src="test1_ScenarioFigures.pdf")),
-                tabPanel("Threat DistributionsScenario Figures", 
-                         tags$iframe(style="height:400px; width:100%; scrolling=yes", 
-                                     src="test1_ScenarioFigures.pdf"))
+                # using iframe along with tags() in server to display pdf with scroll, height and width could be adjusted
+                tabPanel("Tables",
+                         uiOutput("pdfTables")),
+                tabPanel("Gear Redistribution Figures",
+                         uiOutput("pdfGearRedFigs")),
+                tabPanel("Scenario Figures",
+                         uiOutput("pdfScenFigs")),
+                tabPanel("Threat Distributions",
+                         uiOutput("pdfThreatDist"))
               )),
       
       tabItem(tabName = "visualize_areas",

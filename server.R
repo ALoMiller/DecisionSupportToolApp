@@ -214,7 +214,7 @@ function(input, output, session) {
    
       #For running models back to back in same session. 
       DF <- read.csv(paste0(here::here("InputSpreadsheets",input$existing_scenarios),".csv"))
-      
+      print(head(DF))
       rhandsontable(DF, stretchH = "all", readOnly  = F) %>% 
         hot_cols(colWidths = c(100,50)) %>% 
         hot_col(col = "Action", type = "autocomplete", source = Action) %>% 
@@ -291,7 +291,19 @@ function(input, output, session) {
                   paste0(here::here(),'/www/',input$existing_scenarios,'_ThreatDistributions.pdf'))
         file.copy(paste0(here::here(),'/Scenarios/',input$existing_scenarios,'/',input$existing_scenarios,'_ScenarioFigures.pdf'),
                   paste0(here::here(),'/www/',input$existing_scenarios,'_ScenarioFigures.pdf'))
-
+        output$pdfTables <- renderUI({
+          tags$iframe(style="height:600px; width:100%", src=paste0(input$existing_scenarios,"_Tables.pdf"))
+                      }) #adds pdf outputs for figures and tables
+        output$pdfGearRedFigs <- renderUI({
+          tags$iframe(style="height:600px; width:100%", src=paste0(input$existing_scenarios,"_GearRedistributionFigures.pdf"))
+        }) #adds pdf outputs for figures and tables
+        output$pdfThreatDist <- renderUI({
+          tags$iframe(style="height:600px; width:100%", src=paste0(input$existing_scenarios,"_ThreatDistributions.pdf"))
+        }) #adds pdf outputs for figures and tables
+        output$pdfScenFigs <- renderUI({
+          tags$iframe(style="height:600px; width:100%", src=paste0(input$existing_scenarios,"_ScenarioFigures.pdf"))
+        }) #adds pdf outputs for figures and tables
+        
       },
       error = function(e){
         message("Error in decision tool function.")
@@ -408,9 +420,7 @@ function(input, output, session) {
     print(paste0("Results in ",scenario_path))
     return(scenario_path)
   }
-  output$newtabs <- renderUI({
-    
-  }) #adds pdf outputs for figures and tables
+  
   #Implement the validation function and make the filenames reactive  
   matched_tables <- reactive({
     # Make sure requirements are met before looking for results

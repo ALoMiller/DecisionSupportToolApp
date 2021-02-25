@@ -280,6 +280,17 @@ function(input, output, session) {
       tryCatch({
         print('About to run decision tool function.')
         run_decisiontool(HD=here::here(),InputSpreadsheetName=paste0(input$filename,".csv"))
+        #creates the www directory for tags$iframe embedding pdf output files into the app
+        if (!fs::dir_exists(paste0(here::here(),'/www'))) fs::dir_create(paste0(here::here(),'/www'))
+        #move pdf output files into www directory
+        file.copy(paste0(here::here(),'/Scenarios/',input$existing_scenarios,'/',input$existing_scenarios,'_GearRedistributionFigures.pdf'),
+                  paste0(here::here(),'/www/',input$existing_scenarios,'_GearRedistributionFigures.pdf'))
+        file.copy(paste0(here::here(),'/Scenarios/',input$existing_scenarios,'/',input$existing_scenarios,'_Tables.pdf'),
+                  paste0(here::here(),'/www/',input$existing_scenarios,'_Tables.pdf'))
+        file.copy(paste0(here::here(),'/Scenarios/',input$existing_scenarios,'/',input$existing_scenarios,'_ThreatDistributions.pdf'),
+                  paste0(here::here(),'/www/',input$existing_scenarios,'_ThreatDistributions.pdf'))
+        file.copy(paste0(here::here(),'/Scenarios/',input$existing_scenarios,'/',input$existing_scenarios,'_ScenarioFigures.pdf'),
+                  paste0(here::here(),'/www/',input$existing_scenarios,'_ScenarioFigures.pdf'))
 
       },
       error = function(e){
@@ -303,52 +314,6 @@ function(input, output, session) {
     }
     im
   }
-  
-  ### Functions for image zooming-----------------------------------------------------------------------
-  ## Code for image zoom was written by Jacob Fiksel
-  ## See https://jfiksel.github.io/2017-02-26-cropping_images_with_a_shiny_app/
-  
-  
-  #A function to plot the images after they've been loaded
-  app.plot <- function(im, clicks.x = NULL, clicks.y = NULL, lineslist = NULL){
-    if(is.null(im)){
-      return(NULL)
-    }
-    if(is.null(ranges$x) | is.null(ranges$y)){
-      plot(im, axes = F, ann=FALSE)
-    }else{
-      plot(im, axes = F, ann=FALSE, xlim=ranges$x,  ylim=c(ranges$y[2], ranges$y[1]))
-    }
-  }
-  
-  ### Set ranges for zooming
-  ranges <- reactiveValues(x = NULL, y = NULL)
-  
-  ### Code to zoom in on brushed area when double clicking for plot 1
-  observeEvent(input$plot1_dblclick, {
-    brush <- input$plot1_brush
-    if (!is.null(brush)) {
-      ranges$x <- c(brush$xmin, brush$xmax)
-      ranges$y <- c(brush$ymin, brush$ymax)
-      
-    } else {
-      ranges$x <- NULL
-      ranges$y <- NULL
-    }
-  })
-  
-  #Initialize images as reactive-------------------------------------------------------------------------
-  v <- reactiveValues(
-    originalImage = NULL,
-    imgclick.x = NULL,
-    imgclick.y = NULL
-  )
-  
-  v2 <- reactiveValues(
-    originalImage = NULL,
-    imgclick.x = NULL,
-    imgclick.y = NULL
-  )
   
   #A function to identify file paths for results--------------------------------------------------------
   find_result <- function(){
@@ -426,26 +391,6 @@ function(input, output, session) {
     scenario
   })
   
-  #Left plot
-  output$plot1 <- renderPlot({
-    print(paste0("Figure filenames:",matched_plots()))
-    v$originalImage <- read.image(matched_plots()[1])
-    v$imgclick.x <- NULL
-    v$imgclick.y <- NULL
-    app.plot(v$originalImage,v$imgclick.x, v$imgclick.y)
-    
-  }, width = 675, height = 750)
-  
-  #Right plot
-  output$plot2 <- renderPlot({
-    print(paste0("Figure filenames:",matched_plots()))
-    v2$originalImage <- read.image(matched_plots()[2])
-    v2$imgclick.x <- NULL
-    v2$imgclick.y <- NULL
-    app.plot(v2$originalImage,v2$imgclick.x, v2$imgclick.y)
-    
-  }, width = 675, height = 750)
-  
   find_tables <- function(){
     
     if (input$filename == "") {
@@ -474,79 +419,7 @@ function(input, output, session) {
     ) 
     find_tables()
   })
-  
-  output$WhaleDensity = DT::renderDT({  #Tables loaded from the proper Scenario folder
-    # dat <- read.csv("Scenarios/ExampleRun/ExampleRun_OutputData.csv", stringsAsFactors = FALSE) %>% 
-    dat <- read.csv(matched_tables(), stringsAsFactors = FALSE) %>%
-      dplyr::mutate(Default = round(Default, 0),
-                    Scenario = round(Scenario, 0),
-                    Reduction = paste0(round(Reduction, 2) * 100, "%")) %>% 
-      dplyr::filter(Variable == "WhaleDensity") %>% 
-      dplyr::select(-Variable) %>% 
-      DT::datatable(., rownames = FALSE,
-                    options = list(pageLength = 13, 
-                                   dom = 't',
-                                   autoWidth = TRUE,
-                                   columnDefs = list(list(
-                                     className = 'dt-right', targets = c(0,3)
-                                   ))
-                    ))
-  })
-  
-  output$GearFished_PostReduction = DT::renderDT({  #Tables loaded from the proper Scenario folder
-    # dat <- read.csv("Scenarios/ExampleRun/ExampleRun_OutputData.csv", stringsAsFactors = FALSE) %>% 
-    dat <- read.csv(matched_tables(), stringsAsFactors = FALSE) %>%
-      dplyr::mutate(Default = round(Default, 0),
-                    Scenario = round(Scenario, 0),
-                    Reduction = paste0(round(Reduction, 2) * 100, "%")) %>% 
-      dplyr::filter(Variable == "GearFished_PostReduction") %>% 
-      dplyr::select(-Variable) %>% 
-      DT::datatable(., rownames = FALSE,
-                    options = list(pageLength = 13, 
-                                   dom = 't',
-                                   autoWidth = TRUE,
-                                   columnDefs = list(list(
-                                     className = 'dt-right', targets = c(0,3)
-                                   ))
-                    ))
-  })
-  
-  output$TrapsFished = DT::renderDT({  #Tables loaded from the proper Scenario folder
-    # dat <- read.csv("Scenarios/ExampleRun/ExampleRun_OutputData.csv", stringsAsFactors = FALSE) %>% 
-    dat <- read.csv(matched_tables(), stringsAsFactors = FALSE) %>%
-      dplyr::mutate(Default = round(Default, 0),
-                    Scenario = round(Scenario, 0),
-                    Reduction = paste0(round(Reduction, 2) * 100, "%")) %>% 
-      dplyr::filter(Variable == "TrapsFished") %>% 
-      dplyr::select(-Variable) %>% 
-      DT::datatable(., rownames = FALSE,
-                    options = list(pageLength = 13, 
-                                   dom = 't',
-                                   autoWidth = TRUE,
-                                   columnDefs = list(list(
-                                     className = 'dt-right', targets = c(0,3)
-                                   ))
-                    ))
-  })
-  
-  output$Trawls = DT::renderDT({  #Tables loaded from the proper Scenario folder
-    # dat <- read.csv("Scenarios/ExampleRun/ExampleRun_OutputData.csv", stringsAsFactors = FALSE) %>% 
-    dat <- read.csv(matched_tables(), stringsAsFactors = FALSE) %>%
-      dplyr::mutate(Default = round(Default, 0),
-                    Scenario = round(Scenario, 0),
-                    Reduction = paste0(round(Reduction, 2) * 100, "%")) %>% 
-      dplyr::filter(Variable == "Trawls") %>% 
-      dplyr::select(-Variable) %>% 
-      DT::datatable(., rownames = FALSE,
-                    options = list(pageLength = 13, 
-                                   dom = 't',
-                                   autoWidth = TRUE,
-                                   columnDefs = list(list(
-                                     className = 'dt-right', targets = c(0,3)
-                                   ))
-                    ))
-  })
-  
+
   output$renderedReadme <- renderUI({           
     includeHTML(rmarkdown::render(input = "README.md", "html_document"))
   })

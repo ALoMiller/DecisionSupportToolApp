@@ -183,8 +183,7 @@ function(input, output, session) {
                     selected = "")
   })
 
-  
-  
+
   #Specifies table layout for custom input parameters
   output$hot = renderRHandsontable({
     #Show blank template if no input file is chosen
@@ -242,7 +241,7 @@ function(input, output, session) {
       shinyjs::disable("run")
       
       #Prevent model run if custom parameters exist without a scenario name
-    } else if (input$filename == ""){
+    } else if (input$filename == "" | input$gearmapname == "" | input$whalemapname == ""){
       shinyjs::disable("run")
       
       #Otherwise run the model and save the ouput to csv
@@ -279,29 +278,32 @@ function(input, output, session) {
       shinyjs::html("run-text", "")
       tryCatch({
         print('About to run decision tool function.')
-        run_decisiontool(HD=here::here(),InputSpreadsheetName=paste0(input$filename,".csv"))
+        run_decisiontool(HD=here::here(),
+                         InputSpreadsheetName=paste0(input$filename,".csv"),
+                         GearMapName=input$gearmapname,
+                         WhaleMapName=input$whalemapname)
         #creates the www directory for tags$iframe embedding pdf output files into the app
         if (!fs::dir_exists(paste0(here::here(),'/www'))) fs::dir_create(paste0(here::here(),'/www'))
         #move pdf output files into www directory
-        file.copy(paste0(here::here(),'/Scenarios/',input$existing_scenarios,'/',input$existing_scenarios,'_GearRedistributionFigures.pdf'),
-                  paste0(here::here(),'/www/',input$existing_scenarios,'_GearRedistributionFigures.pdf'))
-        file.copy(paste0(here::here(),'/Scenarios/',input$existing_scenarios,'/',input$existing_scenarios,'_Tables.pdf'),
-                  paste0(here::here(),'/www/',input$existing_scenarios,'_Tables.pdf'))
-        file.copy(paste0(here::here(),'/Scenarios/',input$existing_scenarios,'/',input$existing_scenarios,'_ThreatDistributions.pdf'),
-                  paste0(here::here(),'/www/',input$existing_scenarios,'_ThreatDistributions.pdf'))
-        file.copy(paste0(here::here(),'/Scenarios/',input$existing_scenarios,'/',input$existing_scenarios,'_ScenarioFigures.pdf'),
-                  paste0(here::here(),'/www/',input$existing_scenarios,'_ScenarioFigures.pdf'))
+        file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_GearRedistributionFigures.pdf'),
+                  paste0(here::here(),'/www/',input$filename,'_GearRedistributionFigures.pdf'))
+        file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_Tables.pdf'),
+                  paste0(here::here(),'/www/',input$filename,'_Tables.pdf'))
+        file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_ThreatDistributions.pdf'),
+                  paste0(here::here(),'/www/',input$filename,'_ThreatDistributions.pdf'))
+        file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_ScenarioFigures.pdf'),
+                  paste0(here::here(),'/www/',input$filename,'_ScenarioFigures.pdf'))
         output$pdfTables <- renderUI({
-          tags$iframe(style="height:600px; width:100%", src=paste0(input$existing_scenarios,"_Tables.pdf"))
+          tags$iframe(style="height:600px; width:100%", src=paste0(input$filename,"_Tables.pdf"))
                       }) #adds pdf outputs for figures and tables
         output$pdfGearRedFigs <- renderUI({
-          tags$iframe(style="height:600px; width:100%", src=paste0(input$existing_scenarios,"_GearRedistributionFigures.pdf"))
+          tags$iframe(style="height:600px; width:100%", src=paste0(input$filename,"_GearRedistributionFigures.pdf"))
         }) #adds pdf outputs for figures and tables
         output$pdfThreatDist <- renderUI({
-          tags$iframe(style="height:600px; width:100%", src=paste0(input$existing_scenarios,"_ThreatDistributions.pdf"))
+          tags$iframe(style="height:600px; width:100%", src=paste0(input$filename,"_ThreatDistributions.pdf"))
         }) #adds pdf outputs for figures and tables
         output$pdfScenFigs <- renderUI({
-          tags$iframe(style="height:600px; width:100%", src=paste0(input$existing_scenarios,"_ScenarioFigures.pdf"))
+          tags$iframe(style="height:600px; width:100%", src=paste0(input$filename,"_ScenarioFigures.pdf"))
         }) #adds pdf outputs for figures and tables
         
       },

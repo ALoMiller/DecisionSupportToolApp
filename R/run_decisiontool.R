@@ -1,15 +1,17 @@
 Version="DecisionSupportTool_V3.0.2.R"
 
-run_decisiontool <- function(HD=here::here(),InputSpreadsheetName="ScenarioTemplate_V3.0.0.csv"){
+run_decisiontool <- function(HD=here::here(),InputSpreadsheetName="ScenarioTemplate_V3.0.0.csv",
+                             GearMapName="GearMap_Lobster_V3.0.0.Rdata",
+                             WhaleMapName="Duke_RightWhaleModel_v10_1018.Rdata"){
   DecisionTool(
     HomeDir=HD, ## home directory for subdirectories
     ModelVersion=Version, ## model version
     InputSpreadsheetName=InputSpreadsheetName, ## csv input file with specified criteria
     MapRefDomain="MapRef_HR_Lobster_V3.0.0.Rdata",
-    GearMapName="GearMap_Lobster_MassRMA_V3.0.0.Rdata", ## default Gear map with fishing in the cape cod closure
+    GearMapName=GearMapName, 
     RopeStrengthModelName="LineStrengthModel_V2.1_60TrapThreshold.Rdata", ## rope strength as a function of trawl length; All trawls>35 traps being equal
     ThreatModel="ThreatMod_RW_Selectivity_Uncertainty.Rdata", ## gear threat model
-    WhaleInputModel="Duke_RightWhaleModel_v10_1018.Rdata", ## only compatible with GearMap v3+
+    WhaleInputModel=WhaleMapName, ## only compatible with GearMap v3+
     CommentText="PrefAlt_MassRMA_v10_DST3_TotalMARiskReduction",
     TestScenario=TRUE, ## run a test scenario or only a default baseline?
     CoOccurrence=FALSE, ## run co-occurrence only; no gear threat model (speeds up model run time)

@@ -47,7 +47,15 @@ ui <- dashboardPage(
               h4("Specify scenarios and scenario parameters"),
               fluidRow(
                 box(
-                  textInput("filename", label = "Enter new scenario name:", value = NULL),
+                  selectInput("existing_scenarios",
+                              "Choose existing scenario:",
+                              selected = "",
+                              c("",existing_input_scenarios),
+                              multiple = F),
+                  actionButton("update_list",
+                               "Refresh")
+                ),
+                box(
                   selectInput("gearmapname",
                               "Select Gear Map:",
                               selected = "",
@@ -57,18 +65,10 @@ ui <- dashboardPage(
                               selected = "",
                               c("","Duke_HumpbackWhaleModel_v10_DSTv3.Rdata","Duke_HumpbackWhaleModel_v10_DSTv3_Expanded.Rdata",
                                 "Duke_RightWhaleModel_v10_0309.Rdata","Duke_RightWhaleModel_v10_0318.Rdata",
-                                "Duke_RightWhaleModel_v10_1018.Rdata"))
-                ),
-                box(
-                  selectInput("existing_scenarios",
-                              "Choose existing scenario:",
-                              selected = "",
-                              c("",existing_input_scenarios),
-                              multiple = F),
-                  actionButton("update_list",
-                  "Refresh")
-                  )
-                ),
+                                "Duke_RightWhaleModel_v10_1018.Rdata","Duke_FinWhaleModel_v11.Rdata")),
+                  textInput("filename", label = "Enter new scenario name:", value = NULL)
+                  
+                )),
               fluidRow(
                 box(
                   

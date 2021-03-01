@@ -197,7 +197,7 @@ function(input, output, session) {
         hot_col(col = "StatArea", type = "autocomplete", source = StatArea) %>% 
         hot_col(col = "Fishery", type = "autocomplete", source = Fishery) %>% 
         hot_col(col = "Shapefile", strict = F, type = "autocomplete", source = shapefile_names) %>% 
-        hot_col(col = "Months", type = "autocomplete", source = Months) %>%
+        hot_col(col = "Months", type = "autocomplete", source = "Months") %>%
         hot_col(col = "Percentage", type = "numeric", strict = F) %>% 
         hot_col(col = "StringRegulation", type = "autocomplete", source = StringRegulation) %>% 
         hot_col(col = "StringLen", type = "autocomplete", source = StringLen) %>%
@@ -213,7 +213,7 @@ function(input, output, session) {
    
       #For running models back to back in same session. 
       DF <- read.csv(paste0(here::here("InputSpreadsheets",input$existing_scenarios),".csv"))
-      print(head(DF))
+      
       rhandsontable(DF, stretchH = "all", readOnly  = F) %>% 
         hot_cols(colWidths = c(100,50)) %>% 
         hot_col(col = "Action", type = "autocomplete", source = Action) %>% 
@@ -222,7 +222,7 @@ function(input, output, session) {
         hot_col(col = "StatArea", type = "autocomplete", source = StatArea) %>% 
         hot_col(col = "Fishery", type = "autocomplete", source = Fishery) %>% 
         hot_col(col = "Shapefile", strict = F, type = "autocomplete", source = shapefile_names) %>% 
-        hot_col(col = "Months", type = "autocomplete", source = Months) %>%
+        hot_col(col = "Months", type = "autocomplete", source = "Months") %>%
         hot_col(col = "Percentage", type = "numeric", strict = F) %>% 
         hot_col(col = "StringRegulation", type = "autocomplete", source = StringRegulation) %>% 
         hot_col(col = "StringLen", type = "autocomplete", source = StringLen) %>%
@@ -250,6 +250,7 @@ function(input, output, session) {
     }
     
   })
+ 
   
   #Observes the "Run Model" button-------------------------------------------------------------------
   observeEvent(input$run, {
@@ -286,24 +287,24 @@ function(input, output, session) {
         if (!fs::dir_exists(paste0(here::here(),'/www'))) fs::dir_create(paste0(here::here(),'/www'))
         #move pdf output files into www directory
         file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_GearRedistributionFigures.pdf'),
-                  paste0(here::here(),'/www/',input$filename,'_GearRedistributionFigures.pdf'))
+                  paste0(here::here(),'/www/',input$filename,'_GearRedistributionFigures.pdf'), overwrite = TRUE)
         file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_Tables.pdf'),
-                  paste0(here::here(),'/www/',input$filename,'_Tables.pdf'))
+                  paste0(here::here(),'/www/',input$filename,'_Tables.pdf'), overwrite = TRUE)
         file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_ThreatDistributions.pdf'),
-                  paste0(here::here(),'/www/',input$filename,'_ThreatDistributions.pdf'))
+                  paste0(here::here(),'/www/',input$filename,'_ThreatDistributions.pdf'), overwrite = TRUE)
         file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_ScenarioFigures.pdf'),
-                  paste0(here::here(),'/www/',input$filename,'_ScenarioFigures.pdf'))
+                  paste0(here::here(),'/www/',input$filename,'_ScenarioFigures.pdf'), overwrite = TRUE)
         output$pdfTables <- renderUI({
-          tags$iframe(style="height:600px; width:100%", src=paste0(input$filename,"_Tables.pdf"))
+          tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_Tables.pdf"))
                       }) #adds pdf outputs for figures and tables
         output$pdfGearRedFigs <- renderUI({
-          tags$iframe(style="height:600px; width:100%", src=paste0(input$filename,"_GearRedistributionFigures.pdf"))
+          tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_GearRedistributionFigures.pdf"))
         }) #adds pdf outputs for figures and tables
         output$pdfThreatDist <- renderUI({
-          tags$iframe(style="height:600px; width:100%", src=paste0(input$filename,"_ThreatDistributions.pdf"))
+          tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_ThreatDistributions.pdf"))
         }) #adds pdf outputs for figures and tables
         output$pdfScenFigs <- renderUI({
-          tags$iframe(style="height:600px; width:100%", src=paste0(input$filename,"_ScenarioFigures.pdf"))
+          tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_ScenarioFigures.pdf"))
         }) #adds pdf outputs for figures and tables
         
       },
@@ -435,4 +436,9 @@ function(input, output, session) {
   output$renderedReadme <- renderUI({           
     includeHTML(rmarkdown::render(input = "README.md", "html_document"))
   })
+  session$onSessionEnded(function() {
+    unlink(isolate(paste0(here::here(),'/www')),recursive=TRUE) #Removes www folder when Shiny session ends 
+    unlink(isolate(paste0(here::here(),"/Scenarios/",input$filename)),recursive=TRUE)
+    unlink(isolate(paste0(here::here(),"/InputSpreadsheets/",input$filename,'.csv')),recursive=TRUE)
+    })
 }

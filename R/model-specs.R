@@ -44,6 +44,7 @@ Percentage <- ""
 Shapefile <- ""
 GearCap <- ""
 StringLen = ""
+
 #Data frame to hold 
 DF <- data.frame(Action = as.character(rep(NA,10)),
                  LMA = as.character(rep(NA, 10)),
@@ -64,7 +65,6 @@ DF <- data.frame(Action = as.character(rep(NA,10)),
 # #get existing scenarios for listing as scenaerio inputs
 existing_input_csvs <- list.files(here::here("InputSpreadsheets"))
 existing_input_scenarios <- stringr::str_remove(existing_input_csvs, ".csv|.xlsx")
-# existing_input_scenarios <- ""
 
 #Get list of shapefiles
 shapefile_names <- unique(stringr::str_remove(list.files(here::here("InputShapefiles")),"\\..*$"))

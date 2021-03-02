@@ -283,31 +283,7 @@ function(input, output, session) {
                          InputSpreadsheetName=paste0(input$filename,".csv"),
                          GearMapName=input$gearmapname,
                          WhaleMapName=input$whalemapname)
-        #creates the www directory for tags$iframe embedding pdf output files into the app
-        if (!fs::dir_exists(paste0(here::here(),'/www'))) fs::dir_create(paste0(here::here(),'/www'))
-        #move pdf output files into www directory
-        file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_GearRedistributionFigures.pdf'),
-                  paste0(here::here(),'/www/',input$filename,'_GearRedistributionFigures.pdf'), overwrite = TRUE)
-        file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_Tables.pdf'),
-                  paste0(here::here(),'/www/',input$filename,'_Tables.pdf'), overwrite = TRUE)
-        file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_ThreatDistributions.pdf'),
-                  paste0(here::here(),'/www/',input$filename,'_ThreatDistributions.pdf'), overwrite = TRUE)
-        file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_ScenarioFigures.pdf'),
-                  paste0(here::here(),'/www/',input$filename,'_ScenarioFigures.pdf'), overwrite = TRUE)
-        output$pdfTables <- renderUI({
-          tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_Tables.pdf"))
-                      }) #adds pdf outputs for figures and tables
-        output$pdfGearRedFigs <- renderUI({
-          tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_GearRedistributionFigures.pdf"))
-        }) #adds pdf outputs for figures and tables
-        output$pdfThreatDist <- renderUI({
-          tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_ThreatDistributions.pdf"))
-        }) #adds pdf outputs for figures and tables
-        output$pdfScenFigs <- renderUI({
-          tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_ScenarioFigures.pdf"))
-        }) #adds pdf outputs for figures and tables
-        
-      },
+            },
       error = function(e){
         message("Error in decision tool function.")
       })
@@ -316,6 +292,29 @@ function(input, output, session) {
     message = function(m) {
       shinyjs::html(id = "run-text", html = paste0(m$message,"<br>"), add = TRUE)
     })
+    #creates the www directory for tags$iframe embedding pdf output files into the app
+    if (!fs::dir_exists(paste0(here::here(),'/www'))) fs::dir_create(paste0(here::here(),'/www'))
+    #move pdf output files into www directory
+    file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_GearRedistributionFigures.pdf'),
+              paste0(here::here(),'/www/',input$filename,'_GearRedistributionFigures.pdf'), overwrite = TRUE)
+    file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_Tables.pdf'),
+              paste0(here::here(),'/www/',input$filename,'_Tables.pdf'), overwrite = TRUE)
+    file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_ThreatDistributions.pdf'),
+              paste0(here::here(),'/www/',input$filename,'_ThreatDistributions.pdf'), overwrite = TRUE)
+    file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_ScenarioFigures.pdf'),
+              paste0(here::here(),'/www/',input$filename,'_ScenarioFigures.pdf'), overwrite = TRUE)
+    output$pdfTables <- renderUI({
+      tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_Tables.pdf"))
+    }) #adds pdf outputs for figures and tables
+    output$pdfGearRedFigs <- renderUI({
+      tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_GearRedistributionFigures.pdf"))
+    }) #adds pdf outputs for figures and tables
+    output$pdfThreatDist <- renderUI({
+      tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_ThreatDistributions.pdf"))
+    }) #adds pdf outputs for figures and tables
+    output$pdfScenFigs <- renderUI({
+      tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_ScenarioFigures.pdf"))
+    }) #adds pdf outputs for figures and tables
     
   })
   
@@ -434,7 +433,7 @@ function(input, output, session) {
   })
 
   output$renderedReadme <- renderUI({           
-    includeHTML(rmarkdown::render(input = "README.md", "html_document"))
+    includeHTML(rmarkdown::render(input = paste0(here::here(),"/README.md"), "html_document"))
   })
   session$onSessionEnded(function() {
     unlink(isolate(paste0(here::here(),'/www')),recursive=TRUE) #Removes www folder when Shiny session ends 

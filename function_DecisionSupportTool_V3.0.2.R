@@ -169,7 +169,6 @@ DecisionTool=function(
     
     spRef_UTM_19="+proj=utm +zone=19 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
     spRef_DD="+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs"
-    
     ####################### Misc Functions ############################--
     source(paste(HD, "/FunctionsEtc/functionsDecisionSupportTool_V2.3.0.R", sep=""))
     print(paste("Running ", InputSpreadsheetName))
@@ -413,7 +412,7 @@ DecisionTool=function(
   
   if(Fold) { ## load GIS layers and bathymetry
     ShapefileDir=paste(HD, "/InputShapefiles", sep="")
-    message("Loading Shapefiles")
+    # message("Loading Shapefiles")
     spStatAreas=readOGR(dsn=ShapefileDir, 
                         layer="StatAreas_DecisionTool",
                         verbose=FALSE)
@@ -4029,7 +4028,7 @@ DecisionTool=function(
       MeanThreatReduction$Scenario=round(MeanThreatReduction$Scenario, 2);
       MeanThreatReduction$Reduction=round(MeanThreatReduction$Reduction, 3);
       
-      message(MeanThreatReduction);
+      # message(MeanThreatReduction);
     }
 
     message(paste0("Model run completed. Runtime ", ## V2.3.2

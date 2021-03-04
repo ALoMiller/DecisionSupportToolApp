@@ -71,7 +71,6 @@ ui <- dashboardPage(
                 )),
               fluidRow(
                 box(
-                  
                   rHandsontableOutput("hot", width = "100%"),
                   br(),
                   actionButton(inputId="run",label="Run model"),

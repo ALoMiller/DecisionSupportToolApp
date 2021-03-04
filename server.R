@@ -1,4 +1,5 @@
 #Server code
+
 function(input, output, session) {
   
   output$help_map = renderLeaflet({
@@ -191,19 +192,19 @@ function(input, output, session) {
       
       rhandsontable(DF, stretchH = "all", readOnly  = F) %>% 
         hot_cols(colWidths = c(100,50)) %>% 
-        hot_col(col = "Action", type = "autocomplete", source = Action) %>% 
-        hot_col(col = "LMA", type = "autocomplete", source = LMA) %>% 
-        hot_col(col = "State", type = "autocomplete", source = State) %>% 
-        hot_col(col = "StatArea", type = "autocomplete", source = StatArea) %>% 
-        hot_col(col = "Fishery", type = "autocomplete", source = Fishery) %>% 
-        hot_col(col = "Shapefile", strict = F, type = "autocomplete", source = shapefile_names) %>% 
-        hot_col(col = "Months", type = "autocomplete", source = "Months") %>%
+        hot_col(col = "Action", type = "dropdown", source = Action) %>% 
+        hot_col(col = "LMA", type = "dropdown", source = LMA) %>% 
+        hot_col(col = "State", type = "dropdown", source = State) %>% 
+        hot_col(col = "StatArea", type = "dropdown", source = StatArea) %>% 
+        hot_col(col = "Fishery", type = "dropdown", source = Fishery) %>% 
+        hot_col(col = "Shapefile", strict = F, type = "dropdown", source = shapefile_names) %>% 
+        hot_col(col = "Months", type = "dropdown", source = "Months") %>%
         hot_col(col = "Percentage", type = "numeric", strict = F) %>% 
-        hot_col(col = "StringRegulation", type = "autocomplete", source = StringRegulation) %>% 
-        hot_col(col = "StringLen", type = "autocomplete", source = StringLen) %>%
+        hot_col(col = "StringRegulation", type = "dropdown", source = StringRegulation) %>% 
+        hot_col(col = "StringLen", type = "dropdown", source = StringLen) %>%
         hot_col(col = "MaxRopeStrength", type = "numeric", strict = F) %>%
-        hot_col(col = "BuoylineDevice", type = "autocomplete", source = BuoylineDevice) %>%
-        hot_col(col = "RopelessDevice", type = "autocomplete", source = RopelessDevice) %>%
+        hot_col(col = "BuoylineDevice", type = "dropdown", source = BuoylineDevice) %>%
+        hot_col(col = "RopelessDevice", type = "dropdown", source = RopelessDevice) %>%
         hot_col(col = "GearCap", type = "numeric", strict = F) %>%
         hot_col(col = "MaxGearSnglLn", type = "numeric", strict = F) 
       
@@ -211,24 +212,23 @@ function(input, output, session) {
     } else {
       print(paste("Selected model:",input$existing_scenarios))
    
-      #For running models back to back in same session. 
       DF <- read.csv(paste0(here::here("InputSpreadsheets",input$existing_scenarios),".csv"))
       
       rhandsontable(DF, stretchH = "all", readOnly  = F) %>% 
         hot_cols(colWidths = c(100,50)) %>% 
-        hot_col(col = "Action", type = "autocomplete", source = Action) %>% 
-        hot_col(col = "LMA", type = "autocomplete", source = LMA) %>% 
-        hot_col(col = "State", type = "autocomplete", source = State) %>% 
-        hot_col(col = "StatArea", type = "autocomplete", source = StatArea) %>% 
-        hot_col(col = "Fishery", type = "autocomplete", source = Fishery) %>% 
-        hot_col(col = "Shapefile", strict = F, type = "autocomplete", source = shapefile_names) %>% 
-        hot_col(col = "Months", type = "autocomplete", source = "Months") %>%
+        hot_col(col = "Action", type = "dropdown", source = Action) %>% 
+        hot_col(col = "LMA", type = "dropdown", source = LMA) %>% 
+        hot_col(col = "State", type = "dropdown", source = State) %>% 
+        hot_col(col = "StatArea", type = "dropdown", source = StatArea) %>% 
+        hot_col(col = "Fishery", type = "dropdown", source = Fishery) %>% 
+        hot_col(col = "Shapefile", strict = F, type = "dropdown", source = shapefile_names) %>% 
+        hot_col(col = "Months", type = "dropdown", source = "Months") %>%
         hot_col(col = "Percentage", type = "numeric", strict = F) %>% 
-        hot_col(col = "StringRegulation", type = "autocomplete", source = StringRegulation) %>% 
-        hot_col(col = "StringLen", type = "autocomplete", source = StringLen) %>%
+        hot_col(col = "StringRegulation", type = "dropdown", source = StringRegulation) %>% 
+        hot_col(col = "StringLen", type = "dropdown", source = StringLen) %>%
         hot_col(col = "MaxRopeStrength", type = "numeric", strict = F) %>%
-        hot_col(col = "BuoylineDevice", type = "autocomplete", source = BuoylineDevice) %>%
-        hot_col(col = "RopelessDevice", type = "autocomplete", source = RopelessDevice) %>%
+        hot_col(col = "BuoylineDevice", type = "dropdown", source = BuoylineDevice) %>%
+        hot_col(col = "RopelessDevice", type = "dropdown", source = RopelessDevice) %>%
         hot_col(col = "GearCap", type = "numeric", strict = F) %>%
         hot_col(col = "MaxGearSnglLn", type = "numeric", strict = F) 
     }
@@ -267,17 +267,20 @@ function(input, output, session) {
     param$Shapefile <- as.character(param$Shapefile)
     param$Months <- as.character(param$Months)
     param <- param %>% dplyr::filter(Action != "")
-    
+    print(param)
     
     #Saves output and runs model
     print("Saving parameters to file.")
     write.csv(param, 
-              file = paste0(here::here("InputSpreadsheets",input$filename),".csv"), na="",row.names = F)
-    
+              file = paste0(here::here("InputSpreadsheets",input$filename),".csv"), na="",row.names = F) #make trap for existing files
     #Run decision tool function here. Will print messages associated w/ function in UI
     withCallingHandlers({
       shinyjs::html("run-text", "")
       tryCatch({
+      r.dir <- here::here("R")
+      source(file.path(r.dir,"run_decisiontool.R"))
+      source(paste0(here::here(),"/function_DecisionSupportTool_V3.0.2.R"))
+      
         print('About to run decision tool function.')
         run_decisiontool(HD=here::here(),
                          InputSpreadsheetName=paste0(input$filename,".csv"),
@@ -286,7 +289,8 @@ function(input, output, session) {
             },
       error = function(e){
         message("Error in decision tool function.")
-      })
+      }
+      )
       
     },
     message = function(m) {

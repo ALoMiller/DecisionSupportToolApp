@@ -1923,7 +1923,7 @@ DecisionTool=function(
   ###################################################################--
   ## 4.0 Convert Gear to Strings
   if(Fold) { 
-    message("4 Converting Gear to Strings")
+    message("4. Converting Gear to Strings")
     
     ## V2.1.8 hack to track original String length during Stringing when safe to assume fishermen will not change endline strength
     ##  Added a GearPerString_Applied field, capture original String length, and use this to link to Line Strength model
@@ -2278,7 +2278,7 @@ DecisionTool=function(
   ###################################################################--
   ## 5.0 Convert Strings to vertical Lines
   if(Fold) { 
-    message("5 Calculating Vertical Lines from Strings")
+    message("5. Calculating Vertical Lines from Strings")
     ## Strings are converted to vertical lines based on String length. 
     ## Expected to be two vertical lines per String for all offshore areas 
     ## but may be different for inshore areas with shorter Strings.
@@ -2537,7 +2537,7 @@ DecisionTool=function(
   ####################################################################--
   ## 6.0 Characterize Vertical Line Strengths
   if(Fold) {
-    message("6 Characterizing Vertical Line Strengths")
+    message("6. Characterizing Vertical Line Strengths")
     ## A distribution of line Strengths for vertical lines is characterized 
     ## based on observed relationships with String length and further modified based on management options.
     Stage6d=Stage5d[Stage5d$NumVerticalLines>0.001, ]; dim(Stage6d)
@@ -2617,7 +2617,7 @@ DecisionTool=function(
   ## but it is appropriate to include this now in the model framework.
   ## this includes 
   if(Fold) { ## fold line strength management 
-    message("7 Applying any management measures to line diameters")
+    message("7. Applying any management measures to line diameters")
     
     # if(nrow(Stage6d)==
     #    nrow(unique(Stage6d[ ,c("Index", "Index_LR", "Month", "RopeStrength", "GearPerString")]))){
@@ -2915,7 +2915,7 @@ DecisionTool=function(
   #################################################################--
   ## 8.0 Merge line diameters with Threat
   if(Fold) {
-    message("8 Calculating gear configuration threat")
+    message("8. Calculating gear configuration threat")
     ## Line diameters are converted to Threat based on a model to be developed, possibly by polling the TRT.
     Stage8d=aggregate(NumVerticalLinesAtStrength~Index+Index_LR+Month+RopeStrength,
                       Stage7d, sum); 
@@ -3226,7 +3226,7 @@ DecisionTool=function(
   #############################################################--
   ## 9. Calculate Risk
   if(Fold) {
-    message("9 Calculating composite risk values")
+    message("9. Calculating composite risk values")
     ## Risk is calculated as the product of Threat and whale presence.
     WhaleModel=aggregate(WhaleDensity~Month+Index+Index_LR, WhaleDensityModel, mean) ## aggregate to 10Nm
     names(WhaleModel)=c("Month", "Index", "Index_LR", "WhaleDensity")

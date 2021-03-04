@@ -311,7 +311,11 @@ function(input, output, session) {
       tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_Tables.pdf"))
     }) #adds pdf outputs for figures and tables
     output$pdfGearRedFigs <- renderUI({
+      if(exists(paste0(input$filename,"_GearRedistributionFigures.pdf"))){
       tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_GearRedistributionFigures.pdf"))
+      } else {
+        HTML("No Gear Redistribution was required for this scenario run.")
+      }
     }) #adds pdf outputs for figures and tables
     output$pdfThreatDist <- renderUI({
       tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_ThreatDistributions.pdf"))
@@ -441,7 +445,12 @@ function(input, output, session) {
   })
   session$onSessionEnded(function() {
     unlink(isolate(paste0(here::here(),'/www')),recursive=TRUE) #Removes www folder when Shiny session ends 
-    unlink(isolate(paste0(here::here(),"/Scenarios/",input$filename)),recursive=TRUE)
-    unlink(isolate(paste0(here::here(),"/InputSpreadsheets/",input$filename,'.csv')),recursive=TRUE)
-    })
+    #Collect files generated during app session to remove when app closes
+    template = "ScenarioTemplate_V3.0.0"
+    sessionfiles = list.files(paste0(here::here(),"/Scenarios/"))
+    filestoremove = setdiff(sessionfiles,template)
+    #removes Scenario folders generated during session
+    unlink(isolate(paste0(here::here(),"/Scenarios/",filestoremove)),recursive=TRUE)
+    #removes input spreadsheets generated during session
+    unlink(isolate(paste0(here::here(),"/InputSpreadsheets/",filestoremove,'.csv')),recursive=TRUE) })
 }

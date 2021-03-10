@@ -1,5 +1,5 @@
 ## Stat Areas
-shapefilePath <- here::here("InputShapefiles")
+shapefilePath <- "InputShapefiles"
 #shapeFiles <- list.files(here::here("InputShapefiles"),pattern="\\.shp$")
 
 message("Reading in shapefiles ...")

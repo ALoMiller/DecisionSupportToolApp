@@ -16,7 +16,7 @@ library(stringr)
 library(dplyr)
 
 #Source helper functions
-r.dir <- here::here("R")
+r.dir <- "R"
 
 source(file.path(r.dir,"read_shapefiles.R"))
 source(file.path(r.dir,"model-specs.R"))

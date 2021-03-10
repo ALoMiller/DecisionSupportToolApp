@@ -169,9 +169,9 @@ DecisionTool=function(
     spRef_UTM_19="+proj=utm +zone=19 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
     spRef_DD="+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs"
     ####################### Misc Functions ############################--
-    print("FunctionsEtc/functionsDecisionSupportTool_V2.3.0.R")
+    message("FunctionsEtc/functionsDecisionSupportTool_V2.3.0.R")
     source("FunctionsEtc/functionsDecisionSupportTool_V2.3.0.R")
-    print(paste("Running ", InputSpreadsheetName))
+    message(paste("Running ", InputSpreadsheetName))
     
     ## capture model configuration information 
     ModelConfiguration=data.frame(ModelConfiguration=c(
@@ -247,6 +247,7 @@ DecisionTool=function(
     ## note GearPerStringModel and EndlinesPerString included in GearMap starting V2.2.0
     if(file.exists(paste0("Inputs/", GearMapName))){ 
       load(paste0("Inputs/", GearMapName))
+      message(paste0("Loaded: Inputs/", GearMapName))
     } else {
       message("Error: Specified Gear Map not found"); return(paste0("Inputs/", GearMapName))
     }
@@ -409,6 +410,8 @@ DecisionTool=function(
       MonthName=MonthString
     )
   } ## Load model inputs and submodels
+  
+  message("LOADED1") 
   
   if(Fold) { ## load GIS layers and bathymetry
     ShapefileDir=paste("InputShapefiles", sep="")
@@ -1038,6 +1041,8 @@ DecisionTool=function(
     
   } ## Spatial Constraints
   
+  message("LOADED2")
+  
   # str(MapRef_HR_CrI);
   # str(MapRef_HR_Cr);
   # str(MapRef_HR);
@@ -1056,7 +1061,7 @@ DecisionTool=function(
     }
     
   } ## Fishery constraints
-  
+  message("LOADED3")
   # Bk=GearMap; 
   # GearMap=Bk;
   # str(GearMap);
@@ -1139,12 +1144,14 @@ DecisionTool=function(
       gc();
     }
   } ## update spatial domain, save some output 
+  message("LOADED4")
   
   par(mar=c(1,1,1,1));
+  message("LOADED4.1")
   message(plot(MapRef_HR, pch='.', main="Constrained Spatial Domain"))
   message(plot(spStatAreas, add=TRUE, border="blue"))
   message(plot(spLMAs, add=TRUE, border="green"))
-  
+  message("LOADED4.2")
   # str(MapRef_HR); 
   # str(MapRef_LR); 
   # str(GearMap);
@@ -1152,6 +1159,8 @@ DecisionTool=function(
   ## Filled data frame for future plotting
   PlotDF=expand.grid(Index_LR=unique(data.frame(MapRef_LR)$Index_LR),
                      Month=1:12); #summary(PlotDF)
+  
+  message("Finished PlotPdf")
   ##########################################################--
   ## 1.0 Gear Reductions
   if(Fold) {
@@ -1277,6 +1286,7 @@ DecisionTool=function(
     
   } ## fold Gear reductions
   
+  message("LOADED5")
   ##########################################################--
   ## 2.0 Gear Caps
   if(Fold) {
@@ -1481,6 +1491,7 @@ DecisionTool=function(
     
   } ## fold Gear capss
   
+  message("LOADED6")
   ##########################################################--
   ## 3.0 Closures
   if(Fold) {
@@ -1920,6 +1931,7 @@ DecisionTool=function(
     
   } ## fold closures
   
+  message("LOADED7")
   ###################################################################--
   ## 4.0 Convert Gear to Strings
   if(Fold) { 
@@ -2275,6 +2287,7 @@ DecisionTool=function(
     
   } ## convert Gear to Strings; management action
   
+  message("LOADED8")
   ###################################################################--
   ## 5.0 Convert Strings to vertical Lines
   if(Fold) { 
@@ -2534,6 +2547,7 @@ DecisionTool=function(
     
   } ## convert Strings to vertical lines
   
+  message("LOADED9")
   ####################################################################--
   ## 6.0 Characterize Vertical Line Strengths
   if(Fold) {
@@ -2609,6 +2623,7 @@ DecisionTool=function(
     
   } ## fold line strength
   
+  message("LOADED10")
   ##################################################################--
   ## 7.0 Modify line diameters according to management action
   ## Number of vertical lines are further adjusted for any regulations on ropeless or timed-release fishing (#5 above). 

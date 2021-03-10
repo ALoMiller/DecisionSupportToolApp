@@ -20,8 +20,11 @@ r.dir <- "R"
 
 source(file.path(r.dir,"read_shapefiles.R"))
 source(file.path(r.dir,"model-specs.R"))
+message("model specs: done")
 source("function_DecisionSupportTool_V3.0.2.R")
+message("DST: done")
 source(file.path(r.dir,"run_decisiontool.R"))
+message("run_dst: done")
 
 #A zoom effect for boxes
 setZoom <- shinyEffects::setZoom

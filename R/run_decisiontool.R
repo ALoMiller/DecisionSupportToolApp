@@ -1,10 +1,10 @@
-Version="DecisionSupportTool_V3.0.2.R"
-HD=here::here()
-run_decisiontool <- function(HD=here::here(),InputSpreadsheetName="ScenarioTemplate_V3.0.0.csv",
+
+
+run_decisiontool <- function(Version,InputSpreadsheetName="ScenarioTemplate_V3.0.0.csv",
                              GearMapName="GearMap_Lobster_V3.0.0.Rdata",
                              WhaleMapName="Duke_RightWhaleModel_v10_1018.Rdata"){
   DecisionTool(
-    HomeDir=HD, ## home directory for subdirectories
+    #HomeDir=HD, ## home directory for subdirectories
     ModelVersion=Version, ## model version
     InputSpreadsheetName=InputSpreadsheetName, ## csv input file with specified criteria
     MapRefDomain="MapRef_HR_Lobster_V3.0.0.Rdata",

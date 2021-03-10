@@ -1,6 +1,5 @@
 
 DecisionTool=function(
-  HomeDir,
   ModelVersion,
   InputSpreadsheetName,
   MapRefDomain, ## V2.3.0
@@ -164,19 +163,20 @@ DecisionTool=function(
     library(gridExtra)
     library(maptools)
     library(rgdal)
-    library(geosphere);
-    library(lattice);
+    library(geosphere)
+    library(lattice)
     
     spRef_UTM_19="+proj=utm +zone=19 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
     spRef_DD="+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs"
     ####################### Misc Functions ############################--
-    source(paste(HD, "/FunctionsEtc/functionsDecisionSupportTool_V2.3.0.R", sep=""))
+    print("FunctionsEtc/functionsDecisionSupportTool_V2.3.0.R")
+    source("FunctionsEtc/functionsDecisionSupportTool_V2.3.0.R")
     print(paste("Running ", InputSpreadsheetName))
     
     ## capture model configuration information 
     ModelConfiguration=data.frame(ModelConfiguration=c(
       as.character(Sys.time()),
-      paste("Home Directory: ", HD),
+      paste("Home Directory: ", ""),
       paste("Model Version: ", ModelVersion),
       paste("Input Spreadsheet: ", InputSpreadsheetName),
       paste("MapRefDomain: ", MapRefDomain),## V2.3.0
@@ -207,11 +207,11 @@ DecisionTool=function(
     )); print(ModelConfiguration  )
     
     ## check and set home directory of input and output files
-    if(dir.exists(HomeDir)){
-      HD=HomeDir; setwd(HD)
-    } else {
-      message("Error: Home Directory does not exist"); return(HD)
-    }
+    # if(dir.exists(HomeDir)){
+    #   HD=HomeDir; setwd(HD)
+    # } else {
+    #   message("Error: Home Directory does not exist"); return(HD)
+    # }
     
     OutputDir=gsub(".csv", "", InputSpreadsheetName); OutputDir
     
@@ -235,7 +235,7 @@ DecisionTool=function(
     ## This is calculated from the Area 3 Vertical Line model as a function of the number of vertical lines and String lengths. 
     ## For Area 3, this need to be modeled separately for the crab and lobster fishery with two different classes of lobster vessels.
     
-    load(paste(HD, "/Inputs/", MapRefDomain, sep="")) ## V2.3.0
+    load(paste("Inputs/", MapRefDomain, sep="")) ## V2.3.0
     Proj4=proj4string(MapRef_HR); Proj4 ## get projection to use for all future spatial objects
     ###summary(MapRef_HR)
     
@@ -245,10 +245,10 @@ DecisionTool=function(
     
     ## Gear Map ##################################################--
     ## note GearPerStringModel and EndlinesPerString included in GearMap starting V2.2.0
-    if(file.exists(paste0(HD, "/Inputs/", GearMapName))){ 
-      load(paste0(HD, "/Inputs/", GearMapName))
+    if(file.exists(paste0("Inputs/", GearMapName))){ 
+      load(paste0("Inputs/", GearMapName))
     } else {
-      message("Error: Specified Gear Map not found"); return(paste0(HD, "/Inputs/", GearMapName))
+      message("Error: Specified Gear Map not found"); return(paste0("Inputs/", GearMapName))
     }
     names(GearPerStringModel)[names(GearPerStringModel)=="GearPerString"]="GearPerString"
     
@@ -272,15 +272,15 @@ DecisionTool=function(
     }
     
     ## Shapefile and Cumulative Gear fished ##############################--
-    GearCap_Regions=readOGR(dsn=paste0(HD, "/InputShapefiles"),
+    GearCap_Regions=readOGR(dsn=paste0("InputShapefiles"),
                             layer="Regions_GearCap", 
                             stringsAsFactors=FALSE, verbose = FALSE); #plot(GearCap_Regions)
     GearCap_Regions=spTransform(GearCap_Regions, Proj4);
-    load(paste0(HD, "/Inputs/GearCapCDF.Rdata")); #summary(GearCapCDF)
+    load(paste0("Inputs/GearCapCDF.Rdata")); #summary(GearCapCDF)
     
     
     ## Zone Adjacency for spatial redistribution of Gear ################--
-    ZoneAdjacency=read.csv(paste(HD, "/Inputs/ZoneAdjacency_DSTv2.2.csv", sep=""), stringsAsFactors = FALSE); 
+    ZoneAdjacency=read.csv(paste("Inputs/ZoneAdjacency_DSTv2.2.csv", sep=""), stringsAsFactors = FALSE); 
     summary(ZoneAdjacency);
     ZoneAdjacency$SourceZone=gsub(" ", "", ZoneAdjacency$SourceZone)
     ZoneAdjacency$SinkZone=gsub(" ", "", ZoneAdjacency$SinkZone)
@@ -295,7 +295,7 @@ DecisionTool=function(
       )
     } else { ## otherwise, load the rope strength model
       
-      RopeStrengthString=paste0(HD, "/Inputs/", RopeStrengthModelName)
+      RopeStrengthString=paste0("Inputs/", RopeStrengthModelName)
       if(file.exists(RopeStrengthString)){
         load(RopeStrengthString);
         # names(LineStrengthMod)=c("GearPerStringInt", "RopeStrength", "Prop_Strength")
@@ -335,7 +335,7 @@ DecisionTool=function(
       )
     } else {
       
-      ThreatString=paste0(HD, "/Inputs/", ThreatModel)
+      ThreatString=paste0("Inputs/", ThreatModel)
       if(file.exists(ThreatString)){
         load(ThreatString);
         # summary(ModRopeThreat)
@@ -363,10 +363,10 @@ DecisionTool=function(
       }
     } ## end load rope threat model
     
-    RopelessRisk=read.csv(paste(HD, "/Inputs/RopelessRisk.csv", sep=""), stringsAsFactors = FALSE); 
+    RopelessRisk=read.csv(paste("Inputs/RopelessRisk.csv", sep=""), stringsAsFactors = FALSE); 
     # RopelessRisk=RopelessRisk[ ,c("RopelessDevice", "Distance", "LineMultiplier")]
     
-    GearConversion=read.csv(paste(HD, "/Inputs/GearConversion.csv", sep=""), stringsAsFactors=FALSE);
+    GearConversion=read.csv(paste("Inputs/GearConversion.csv", sep=""), stringsAsFactors=FALSE);
     # summary(GearConversion)
     
     ## StringLengthModel - Now read in with GearMap V>2.2.0 #########################################--
@@ -385,7 +385,7 @@ DecisionTool=function(
     # summary(EndlinesPerString)
     
     ## Whale Habitat Model ##################################################################################--
-    WhaleString=paste0(HD, "/Inputs/", WhaleInputModel); WhaleString
+    WhaleString=paste0("Inputs/", WhaleInputModel); WhaleString
     if(file.exists(WhaleString)){
       load(WhaleString);
     } else {
@@ -411,7 +411,7 @@ DecisionTool=function(
   } ## Load model inputs and submodels
   
   if(Fold) { ## load GIS layers and bathymetry
-    ShapefileDir=paste(HD, "/InputShapefiles", sep="")
+    ShapefileDir=paste("InputShapefiles", sep="")
     # message("Loading Shapefiles")
     spStatAreas=readOGR(dsn=ShapefileDir, 
                         layer="StatAreas_DecisionTool",
@@ -1011,7 +1011,7 @@ DecisionTool=function(
         }
         if(!is.na(Constraints_Spatial$Shapefile[i])) {
           Constraints_SpatialShape=Constraints_Spatial$Shapefile[i]; Constraints_SpatialShape ## name of shapefile
-          ShapeI=readOGR(dsn=paste(HD, "/TempShapefiles", sep=""), layer=Constraints_SpatialShape, verbose=FALSE) ## load shapefile
+          ShapeI=readOGR(dsn=paste("TempShapefiles", sep=""), layer=Constraints_SpatialShape, verbose=FALSE) ## load shapefile
           ShapeI$ID=1 ## create a known field 
           ShapeI=spTransform(ShapeI, Proj4)
           # plot(ShapeI)
@@ -1200,7 +1200,7 @@ DecisionTool=function(
           }
           if(!is.na(SC_GearReductions$Shapefile[i])) {
             SC_GearReductionsShape=SC_GearReductions$Shapefile[i]; #SC_GearReductionsShape ## name of shapefile
-            ShapeI=readOGR(dsn=paste(HD, "/TempShapefiles", sep=""), layer=SC_GearReductionsShape, verbose=FALSE) ## load shapefile
+            ShapeI=readOGR(dsn=paste("TempShapefiles", sep=""), layer=SC_GearReductionsShape, verbose=FALSE) ## load shapefile
             ShapeI$ID=1 ## create a known field 
             ShapeI=spTransform(ShapeI, Proj4)
             ReductionPx=MapRef_HR$Index_HR[!is.na(over(MapRef_HR, ShapeI)$ID)] ## get spatial overlap of shapefile from overlay
@@ -1325,7 +1325,7 @@ DecisionTool=function(
           }
           if(!is.na(SC_GearCaps$Shapefile[i])) {
             SC_GearCapsShape=SC_GearCaps$Shapefile[i]; SC_GearCapsShape ## name of shapefile
-            ShapeI=readOGR(dsn=paste(HD, "/TempShapefiles", sep=""), layer=SC_GearCapsShape, verbose=FALSE) ## load shapefile
+            ShapeI=readOGR(dsn=paste("TempShapefiles", sep=""), layer=SC_GearCapsShape, verbose=FALSE) ## load shapefile
             ShapeI$ID=1 ## create a known field 
             ShapeI=spTransform(ShapeI, Proj4)
             ReductionPx=MapRef_HR$Index_HR[!is.na(over(MapRef_HR, ShapeI)$ID)] ## get spatial overlap of shapefile from overlay
@@ -1529,7 +1529,7 @@ DecisionTool=function(
           
           ## define the area affected by the closure
           ClosureShape=SC_Closures$Shapefile[i]; ClosureShape ## get name of shapefile
-          ShapeI=readOGR(dsn=paste(HD, "/TempShapefiles", sep=""), layer=ClosureShape, verbose=FALSE) ## load shapefile
+          ShapeI=readOGR(dsn=paste("TempShapefiles", sep=""), layer=ClosureShape, verbose=FALSE) ## load shapefile
           ShapeI$ID=1 ## create a known field in the shapefile
           ShapeI=spTransform(ShapeI, Proj4)
           ClosedPx=MapRef[!is.na(over(MapRef, ShapeI)$ID), ] ## get spatial overlap of shapefile from overlay
@@ -1605,7 +1605,7 @@ DecisionTool=function(
           
           ## define the area affected by the closure
           ClosureShape=SC_Closures$Shapefile[i]; ClosureShape ## name of shapefile
-          ShapeI=readOGR(dsn=paste(HD, "/TempShapefiles", sep=""), layer=ClosureShape, verbose=FALSE) ## load shapefile
+          ShapeI=readOGR(dsn=paste("TempShapefiles", sep=""), layer=ClosureShape, verbose=FALSE) ## load shapefile
           ShapeI$ID=1 ## create a known field 
           ShapeI=spTransform(ShapeI, Proj4)
           ClosedPx=MapRef[!is.na(over(MapRef, ShapeI)$ID), ] ## get spatial overlap of shapefile from overlay
@@ -2031,7 +2031,7 @@ DecisionTool=function(
             }
             if(!is.na(SC_StringLength$Shapefile[i])) {
               SC_StringLengthShape=SC_StringLength$Shapefile[i]; SC_StringLengthShape ## name of shapefile
-              ShapeI=readOGR(dsn=paste(HD, "/TempShapefiles", sep=""), layer=SC_StringLengthShape, verbose=FALSE) ## load shapefile
+              ShapeI=readOGR(dsn=paste("TempShapefiles", sep=""), layer=SC_StringLengthShape, verbose=FALSE) ## load shapefile
               ShapeI$ID=1 ## create a known field 
               ShapeI=spTransform(ShapeI, Proj4)
               MapRef_CrI = MapRef_CrI[!is.na(over(MapRef_CrI, ShapeI)$ID), ] ## get spatial overlap of shapefile from overlay
@@ -2357,7 +2357,7 @@ DecisionTool=function(
           }
           if(!is.na(SC_MaxGearWSingleLine$Shapefile[i])) {
             SC_MaxGearWSingleLineShape=SC_MaxGearWSingleLine$Shapefile[i]; SC_MaxGearWSingleLineShape ## name of shapefile
-            ShapeI=readOGR(dsn=paste(HD, "/TempShapefiles", sep=""), layer=SC_MaxGearWSingleLineShape, verbose=FALSE) ## load shapefile
+            ShapeI=readOGR(dsn=paste("TempShapefiles", sep=""), layer=SC_MaxGearWSingleLineShape, verbose=FALSE) ## load shapefile
             ShapeI$ID=1 ## create a known field 
             ShapeI=spTransform(ShapeI, Proj4)
             MapRef_CrI = MapRef_CrI[!is.na(over(MapRef_CrI, ShapeI)$ID), ] ## get spatial overlap of shapefile from overlay
@@ -2412,7 +2412,7 @@ DecisionTool=function(
           }
           if(!is.na(SC_RopelessDevice$Shapefile[i])) {
             SC_RopelessDeviceShape=SC_RopelessDevice$Shapefile[i]; SC_RopelessDeviceShape ## name of shapefile
-            ShapeI=readOGR(dsn=paste(HD, "/TempShapefiles", sep=""), layer=SC_RopelessDeviceShape, verbose=FALSE) ## load shapefile
+            ShapeI=readOGR(dsn=paste("TempShapefiles", sep=""), layer=SC_RopelessDeviceShape, verbose=FALSE) ## load shapefile
             ShapeI$ID=1 ## create a known field 
             ShapeI=spTransform(ShapeI, Proj4)
             MapRef_CrI = MapRef_CrI[!is.na(over(MapRef_CrI, ShapeI)$ID), ] ## get spatial overlap of shapefile from overlay
@@ -2664,7 +2664,7 @@ DecisionTool=function(
           }
           if(!is.na(SC_MaxRopeStrength$Shapefile[i])) {
             SC_MaxRopeStrengthShape=SC_MaxRopeStrength$Shapefile[i]; SC_MaxRopeStrengthShape ## name of shapefile
-            ShapeI=readOGR(dsn=paste(HD, "/TempShapefiles", sep=""), layer=SC_MaxRopeStrengthShape, verbose=FALSE) ## load shapefile
+            ShapeI=readOGR(dsn=paste("TempShapefiles", sep=""), layer=SC_MaxRopeStrengthShape, verbose=FALSE) ## load shapefile
             ShapeI$ID=1 ## create a known field 
             ShapeI=spTransform(ShapeI, Proj4)
             MapRef_CrI = MapRef_CrI[!is.na(over(MapRef_CrI, ShapeI)$ID), ] ## get spatial overlap of shapefile from overlay
@@ -2761,7 +2761,7 @@ DecisionTool=function(
           }
           if(!is.na(SC_BuoylineDevice$Shapefile[i])) {
             SC_BuoylineDeviceShape=SC_BuoylineDevice$Shapefile[i]; SC_BuoylineDeviceShape ## name of shapefile
-            ShapeI=readOGR(dsn=paste(HD, "/TempShapefiles", sep=""), layer=SC_BuoylineDeviceShape, verbose=FALSE) ## load shapefile
+            ShapeI=readOGR(dsn=paste("TempShapefiles", sep=""), layer=SC_BuoylineDeviceShape, verbose=FALSE) ## load shapefile
             ShapeI$ID=1 ## create a known field 
             ShapeI=spTransform(ShapeI, Proj4)
             MapRef_CrI = MapRef_CrI[!is.na(over(MapRef_CrI, ShapeI)$ID), ] ## get spatial overlap of shapefile from overlay
@@ -3529,7 +3529,7 @@ DecisionTool=function(
   #####################################################################--
   ## 10. Create output directory and write maps and files
   
-  ScenariosDir=(paste(HD, "Scenarios", sep="/"));
+  ScenariosDir=(paste("Scenarios", sep="/"));
   setwd(ScenariosDir)
   ## create and switch to subfolder if necessary
   if(HasSubfolder){ ## V2.2.5

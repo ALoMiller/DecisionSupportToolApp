@@ -2,29 +2,33 @@
 
 1.  Install docker desktop and launch it
 
-2.  Open windows powershell
+1.  Open windows powershell
 
-3.  Navigate to DST project folder
+1.  Navigate to DST project folder
 
-4.  Type:
+1.  Type:
 
     > docker build -t dstool .
 
 Note: Don't forget the period!
 
-5.  The build process will take 15-20 mins. (To see what it is doing edit the `Dockerfile`)
+1.  The build process will take 15-20 mins. (To see what it is doing edit the `Dockerfile`)
 
-6.  Once built, type
+1.  Create a folder called `logs` in the projects root
 
-    > docker run --rm -d -p 3838:3838 dstool
+1.  Once built, type
 
-7.  The container is now running locally
+    > docker run --rm -d -p 3838:3838 -v $pwd/logs:/var/log/shiny-server dstool
 
-8.  Open a web browser and in the address bar type
+1.  The container is now running locally. 
+
+1.  Open a web browser and in the address bar type
 
     > localhost:3838
 
-9.  Your app should run as if hosted on a shiny server with R 3.6.0 running.
+1.  Your app should run as if hosted on a shiny server with R 3.6.0 running.
+
+The logs will be written to the `logs` folder
 
 # Workflow when developing the app
 
@@ -34,7 +38,7 @@ Note: Don't forget the period!
 
     > docker stop \$(docker ps -q)
 
-3.  Build image (since the image copies the project into the container) Eventually we wont have to do this since we will mount the project to the cotainer at run time
+3.  Build image (since the image copies the project into the container). Eventually we wont have to do this since we will mount the project to the container at run time
 
     > docker build -t dstool .
 
@@ -42,8 +46,8 @@ Note: Don't forget the period!
 
 5.  Run the container
 
-> docker run --rm -d -p 3838:3838 dstool
+    > docker run --rm -d -p 3838:3838 -v $pwd/logs:/var/log/shiny-server dst1
 
 1.  Open a web browser and in the address bar type
 
-> localhost:3838
+    > localhost:3838

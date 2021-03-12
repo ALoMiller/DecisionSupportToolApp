@@ -411,8 +411,6 @@ DecisionTool=function(
     )
   } ## Load model inputs and submodels
   
-  message("LOADED1") 
-  
   if(Fold) { ## load GIS layers and bathymetry
     ShapefileDir=paste("InputShapefiles", sep="")
     # message("Loading Shapefiles")
@@ -1041,8 +1039,6 @@ DecisionTool=function(
     
   } ## Spatial Constraints
   
-  message("LOADED2")
-  
   # str(MapRef_HR_CrI);
   # str(MapRef_HR_Cr);
   # str(MapRef_HR);
@@ -1061,7 +1057,6 @@ DecisionTool=function(
     }
     
   } ## Fishery constraints
-  message("LOADED3")
   # Bk=GearMap; 
   # GearMap=Bk;
   # str(GearMap);
@@ -1107,7 +1102,7 @@ DecisionTool=function(
           MapRef=merge(MapRef, nPixels[ ,c("Index_LR", AttI)], all.x=TRUE) ## append to MapRef
         } ## end update of one column
       } ## end loop across columns
-      summary(MapRef)
+      #summary(MapRef)
       MapRef$Index=MapRef$Index_LR;
       
       GearMap$Index=GearMap$Index_LR
@@ -1144,23 +1139,16 @@ DecisionTool=function(
       gc();
     }
   } ## update spatial domain, save some output 
-  message("LOADED4")
-  
-  par(mar=c(1,1,1,1));
-  message("LOADED4.1")
-  message(plot(MapRef_HR, pch='.', main="Constrained Spatial Domain"))
-  message(plot(spStatAreas, add=TRUE, border="blue"))
-  message(plot(spLMAs, add=TRUE, border="green"))
-  message("LOADED4.2")
-  # str(MapRef_HR); 
-  # str(MapRef_LR); 
-  # str(GearMap);
-  
+
+
+  #par(mar=c(1,1,1,1));
+  # message(plot(MapRef_HR, pch='.', main="Constrained Spatial Domain"))
+  # message(plot(spStatAreas, add=TRUE, border="blue"))
+  # message(plot(spLMAs, add=TRUE, border="green"))
+
   ## Filled data frame for future plotting
-  PlotDF=expand.grid(Index_LR=unique(data.frame(MapRef_LR)$Index_LR),
-                     Month=1:12); #summary(PlotDF)
-  
-  message("Finished PlotPdf")
+  PlotDF <- expand.grid(Index_LR=unique(data.frame(MapRef_LR)$Index_LR),Month=1:12); #summary(PlotDF)
+
   ##########################################################--
   ## 1.0 Gear Reductions
   if(Fold) {
@@ -1286,7 +1274,7 @@ DecisionTool=function(
     
   } ## fold Gear reductions
   
-  message("LOADED5")
+
   ##########################################################--
   ## 2.0 Gear Caps
   if(Fold) {
@@ -1491,7 +1479,7 @@ DecisionTool=function(
     
   } ## fold Gear capss
   
-  message("LOADED6")
+
   ##########################################################--
   ## 3.0 Closures
   if(Fold) {
@@ -1931,7 +1919,7 @@ DecisionTool=function(
     
   } ## fold closures
   
-  message("LOADED7")
+
   ###################################################################--
   ## 4.0 Convert Gear to Strings
   if(Fold) { 
@@ -2287,7 +2275,7 @@ DecisionTool=function(
     
   } ## convert Gear to Strings; management action
   
-  message("LOADED8")
+
   ###################################################################--
   ## 5.0 Convert Strings to vertical Lines
   if(Fold) { 
@@ -2546,8 +2534,7 @@ DecisionTool=function(
     if(ManageMemory & !WriteDetailedOutput){CleanUp(InputList = c("Stage4d", "Stage4s"))};
     
   } ## convert Strings to vertical lines
-  
-  message("LOADED9")
+
   ####################################################################--
   ## 6.0 Characterize Vertical Line Strengths
   if(Fold) {
@@ -2623,7 +2610,7 @@ DecisionTool=function(
     
   } ## fold line strength
   
-  message("LOADED10")
+
   ##################################################################--
   ## 7.0 Modify line diameters according to management action
   ## Number of vertical lines are further adjusted for any regulations on ropeless or timed-release fishing (#5 above). 

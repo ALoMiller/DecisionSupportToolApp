@@ -2,7 +2,7 @@
 
 run_decisiontool <- function(Version,InputSpreadsheetName="ScenarioTemplate_V3.0.0.csv",
                              GearMapName="GearMap_Lobster_V3.0.0.Rdata",
-                             WhaleMapName="Duke_RightWhaleModel_v10_1018.Rdata"){
+                             WhaleMapName="Duke_RightWhaleModel_v10_DSTv3.Rdata"){
   DecisionTool(
     #HomeDir=HD, ## home directory for subdirectories
     ModelVersion=Version, ## model version

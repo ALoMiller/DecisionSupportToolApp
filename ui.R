@@ -88,7 +88,12 @@ ui <- dashboardPage(
                 )
               ),
       tabItem(tabName = "view_output",
-              textOutput("table_scenario_name"),
+              #textOutput("table_scenario_name"),
+              selectInput("run_scenarios",
+                          "Choose scenario:",
+                          selected = "",
+                          c("",existing_input_scenarios),
+                          multiple = F),
               tabsetPanel(type='tab',
                 # using iframe along with tags() in server to display pdf with scroll, height and width could be adjusted
                 tabPanel("Tables",

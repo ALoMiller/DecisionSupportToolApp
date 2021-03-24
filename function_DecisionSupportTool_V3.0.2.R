@@ -171,7 +171,7 @@ DecisionTool=function(
     spRef_DD="+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs"
     ####################### Misc Functions ############################--
     source(paste(HD, "/FunctionsEtc/functionsDecisionSupportTool_V2.3.0.R", sep=""))
-    print(paste("Running ", InputSpreadsheetName))
+    message(paste("Running ", InputSpreadsheetName))
     
     ## capture model configuration information 
     ModelConfiguration=data.frame(ModelConfiguration=c(

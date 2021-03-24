@@ -324,11 +324,11 @@ function(input, output, session) {
       output$pdfTables <- renderUI({
       tags$iframe(style="height:800px; width:100%", src=paste0(input$run_scenarios,"_Tables.pdf"))
     }) #adds pdf outputs for figures and tables
-      print(paste0(here::here(),"/Scenarios/",input$run_scenarios,"/",
-                   input$run_scenarios,"_GearRedistributionFigures.pdf"))
+      print(file.exists(paste0(here::here(),"/Scenarios/",input$run_scenarios,"/",
+                   input$run_scenarios,"_GearRedistributionFigures.pdf")))
 
     output$pdfGearRedFigs <- renderUI({
-      if(exists(paste0(here::here(),"/Scenarios/",input$run_scenarios,"/",input$run_scenarios,"_GearRedistributionFigures.pdf"))){
+      if(file.exists(paste0(here::here(),"/Scenarios/",input$run_scenarios,"/",input$run_scenarios,"_GearRedistributionFigures.pdf"))){
         tags$iframe(style="height:800px; width:100%", src=paste0(input$run_scenarios,"_GearRedistributionFigures.pdf"))
       } else {
         HTML("No Gear Redistribution was required for this scenario run.")

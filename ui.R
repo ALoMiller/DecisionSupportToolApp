@@ -25,6 +25,7 @@ source(file.path(r.dir,"run_decisiontool.R"))
 
 #A zoom effect for boxes
 setZoom <- shinyEffects::setZoom
+existing_outputs <- list.files(here::here("Scenarios"))
 
 #User interface
 
@@ -92,7 +93,7 @@ ui <- dashboardPage(
               selectInput("run_scenarios",
                           "Choose scenario:",
                           selected = "",
-                          c("",existing_input_scenarios),
+                          c("",existing_outputs),
                           multiple = F),
               tabsetPanel(type='tab',
                 # using iframe along with tags() in server to display pdf with scroll, height and width could be adjusted

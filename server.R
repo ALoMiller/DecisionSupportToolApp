@@ -307,27 +307,42 @@ function(input, output, session) {
               paste0(here::here(),'/www/',input$filename,'_ThreatDistributions.pdf'), overwrite = TRUE)
     file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_ScenarioFigures.pdf'),
               paste0(here::here(),'/www/',input$filename,'_ScenarioFigures.pdf'), overwrite = TRUE)
-    output$pdfTables <- renderUI({
-      tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_Tables.pdf"))
+    existing_outputs <- list.files(here::here("Scenarios"))
+    updateSelectInput(session,
+                      "run_scenarios",
+                      choices = c("",existing_outputs),
+                      selected = input$filename)
+    
+    
+  })
+  
+  #View output tab-----------------------------------------------------------------------------------
+  observeEvent(input$run_scenarios, {
+    
+    if(input$run_scenarios!=''){
+    
+      output$pdfTables <- renderUI({
+      tags$iframe(style="height:800px; width:100%", src=paste0(input$run_scenarios,"_Tables.pdf"))
     }) #adds pdf outputs for figures and tables
+      print(paste0(here::here(),"/Scenarios/",input$run_scenarios,"/",
+                   input$run_scenarios,"_GearRedistributionFigures.pdf"))
+
     output$pdfGearRedFigs <- renderUI({
-      if(exists(paste0(input$filename,"_GearRedistributionFigures.pdf"))){
-      tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_GearRedistributionFigures.pdf"))
+      if(exists(paste0(here::here(),"/Scenarios/",input$run_scenarios,"/",input$run_scenarios,"_GearRedistributionFigures.pdf"))){
+        tags$iframe(style="height:800px; width:100%", src=paste0(input$run_scenarios,"_GearRedistributionFigures.pdf"))
       } else {
         HTML("No Gear Redistribution was required for this scenario run.")
       }
     }) #adds pdf outputs for figures and tables
     output$pdfThreatDist <- renderUI({
-      tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_ThreatDistributions.pdf"))
+      tags$iframe(style="height:800px; width:100%", src=paste0(input$run_scenarios,"_ThreatDistributions.pdf"))
     }) #adds pdf outputs for figures and tables
     output$pdfScenFigs <- renderUI({
-      tags$iframe(style="height:800px; width:100%", src=paste0(input$filename,"_ScenarioFigures.pdf"))
-    }) #adds pdf outputs for figures and tables
-    
-  })
+      tags$iframe(style="height:800px; width:100%", src=paste0(input$run_scenarios,"_ScenarioFigures.pdf"))
+      }) #adds pdf outputs for figures and tables
+    }
   
-  #View output tab-----------------------------------------------------------------------------------
-  
+    })
 
   output$renderedReadme <- renderUI({           
     includeHTML(rmarkdown::render(input = paste0(here::here(),"/README.md"), "html_document"))

@@ -22,16 +22,29 @@ Fishery <- c("NonExempt",
              "Midshelf_Crab",
              "Offshore_Lobster",
              "Offshore_Crab",
-             "EverythingButExempt")
+             "EverythingButExempt",
+             "Gillnet",
+             "BlueCrab",
+             "OtherTrapPot",
+             "Dogfish",
+             "GB_SNE_CodPollock",
+             "GOM_CodPollock",
+             "GOM_Haddock",
+             "Monkfish",
+             "BlackSeaBass_Fed")
 RopelessDevice <- c("TimedRelease",
                     "AcousticRelease")
 # select multiple
-StatArea <- c(464, 465, 511,
-              512, 513, 514,
-              515, 521, 522,
-              525, 526, 561,
-              562, 537, 538,
-              539)
+StatArea <- c(464, 465, 467, 511, 512, 513, 514,
+              515, 521, 522, 525, 526, 533, 534,
+              537, 538, 539, 541, 542, 552, 561,
+              562, 611, 612, 613, 614, 615, 616,
+              621, 622, 623, 625, 626, 627, 631,
+              632, 635, 636, 700, 701, 702, 706,
+              707, 708, 709, 712, 713, 714, 715,
+              717, 718, 719, 722, 723, 724, 727,
+              728, 729, 732, 733, 736, 737, 740,
+              741)
 StringRegulation <- c("Min",
                      "Max",
                      "Exactly")

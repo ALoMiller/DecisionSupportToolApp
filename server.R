@@ -279,13 +279,14 @@ function(input, output, session) {
       tryCatch({
       r.dir <- here::here("R")
       source(file.path(r.dir,"run_decisiontool.R"))
-      source(paste0(here::here(),"/function_DecisionSupportTool_V3.0.2.R"))
+      source(paste0(here::here(),"/function_DecisionSupportTool_V3.0.6.R"))
       
         print('About to run decision tool function.')
         run_decisiontool(HD=here::here(),
                          InputSpreadsheetName=paste0(input$filename,".csv"),
                          GearMapName=input$gearmapname,
-                         WhaleMapName=input$whalemapname)
+                         WhaleMapName=input$whalemapname,
+                         MapRefDomain=input$maprefdomain)
             },
       error = function(e){
         message("Error in decision tool function.")
@@ -350,7 +351,7 @@ function(input, output, session) {
   session$onSessionEnded(function() {
     unlink(isolate(paste0(here::here(),'/www')),recursive=TRUE) #Removes www folder when Shiny session ends 
     #Collect files generated during app session to remove when app closes
-    template = "ScenarioTemplate_V3.0.0"
+    template = "ScenarioTemplate_V3.0.1"
     sessionfiles = list.files(paste0(here::here(),"/Scenarios/"))
     filestoremove = setdiff(sessionfiles,template)
     #removes Scenario folders generated during session

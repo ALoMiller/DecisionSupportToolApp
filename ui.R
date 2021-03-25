@@ -20,7 +20,7 @@ r.dir <- here::here("R")
 
 source(file.path(r.dir,"read_shapefiles.R"))
 source(file.path(r.dir,"model-specs.R"))
-source("function_DecisionSupportTool_V3.0.2.R")
+source("function_DecisionSupportTool_V3.0.6.R")
 source(file.path(r.dir,"run_decisiontool.R"))
 
 #A zoom effect for boxes
@@ -60,13 +60,19 @@ ui <- dashboardPage(
                   selectInput("gearmapname",
                               "Select Gear Map:",
                               selected = "",
-                              c("","GearMap_Lobster_V3.0.0.Rdata","GearMap_Lobster_MassRMA_V3.0.0.Rdata")),
+                              c("","GearMap_Lobster_V3.0.0.Rdata","GearMap_Lobster_MassRMA_V3.0.0.Rdata","GearMap_Gillnet_IEC_V3.0.0.Rdata",
+                              "GearMap_OtherTrapPot_IEC_V3.0.0.Rdata","GearMap_NewEnglMultispecies_V3.0.0.Rdata",
+                              "GearMap_Monkfish_V3.0.0.Rdata","DST_BlackSeaBass_Federal_v3.0.0.Rdata")),
+                  selectInput("maprefdomain",
+                              "Select Fishery Map:",
+                              selected = "",
+                              c("","MapRef_3.0.2.Rdata","MapRef_HR_Lobster_V3.0.0.Rdata")),
                   selectInput("whalemapname",
                               "Select Whale Habitat Model:",
                               selected = "",
                               c("","Duke_HumpbackWhaleModel_v10_DSTv3.Rdata","Duke_HumpbackWhaleModel_v10_DSTv3_Expanded.Rdata",
-                                "Duke_RightWhaleModel_v10_0309.Rdata","Duke_RightWhaleModel_v10_0318.Rdata",
-                                "Duke_RightWhaleModel_v10_1018.Rdata","Duke_FinWhaleModel_v11.Rdata")),
+                                "Duke_RightWhaleModel_v11_0309.Rdata","Duke_RightWhaleModel_v11_0318.Rdata",
+                                "Duke_RightWhaleModel_v11_1018.Rdata","Duke_FinWhaleModel_v11.Rdata")),
                   textInput("filename", label = "Enter new scenario name:", value = NULL)
                   
                 )),

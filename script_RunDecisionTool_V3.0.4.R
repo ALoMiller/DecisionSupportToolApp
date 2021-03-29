@@ -1,10 +1,10 @@
 rm(list=ls())
 
 ## set working directory
-HD="//net/work4/LobsterGroup/Management/RightWhales/DecisionSupportTool"; setwd(HD)
+#HD="//net/work4/LobsterGroup/Management/RightWhales/DecisionSupportTool"; setwd(HD)
 HD=here::here()
 ## source decision support function
-Version="DecisionSupportTool_V3.0.6.R"
+Version="DecisionSupportTool_V3.0.7.R"
 source(paste0(HD, "/function_", Version))
 
 ## call function
@@ -14,7 +14,7 @@ Output=DecisionTool(
   
   ################## Select core inputs #####################################--
   # InputSpreadsheetName="BurtonsSubfolder/BS_BSB_Test.csv", ## csv input file with specified criteria
-  InputSpreadsheetName="ScenarioTemplate_V3.0.1.csv", ## csv input file with specified criteria
+  InputSpreadsheetName="test2.csv", ## csv input file with specified criteria
   # InputSpreadsheetName="BS_OtherTrapPotTest.csv", ## csv input file with specified criteria
   # InputSpreadsheetName="BS_MonkfishTest.csv", ## csv input file with specified criteria
   # InputSpreadsheetName="BS_DogfishTest.csv", ## csv input file with specified criteria
@@ -25,8 +25,8 @@ Output=DecisionTool(
   
   ## specify input data
   # GearMapName="GearMap_Lobster_V3.0.0.Rdata", ## default Gear map
-  GearMapName="GearMap_Lobster_MassRMA_V3.0.0.Rdata", ## default Gear map with fishing in the cape cod closure
-  # GearMapName="GearMap_Gillnet_IEC_V3.0.0.Rdata", ## default Gear map
+  # GearMapName="GearMap_Lobster_MassRMA_V3.0.0.Rdata", ## default Gear map with fishing in the cape cod closure
+   GearMapName="GearMap_Gillnet_IEC_V3.0.0.Rdata", ## default Gear map
   # GearMapName="GearMap_OtherTrapPot_IEC_V3.0.0.Rdata", ## default Gear map
   # GearMapName="GearMap_NewEnglMultispecies_V3.0.0.Rdata", ## proof-of-concept for multispecies groundfish
   # GearMapName="GearMap_Monkfish_V3.0.0.Rdata", ## proof-of-concept for multispecies groundfish
@@ -44,10 +44,10 @@ Output=DecisionTool(
   WhaleInputModel="Duke_RightWhaleModel_v11_1018.Rdata", ## only compatible with GearMap v3+
   
   ################# select model options ################--
-  CommentText="BSB PrelimTest",
-  TestScenario=FALSE, ## run a test scenario or only a default baseline?
+  CommentText="test2",
+  TestScenario=TRUE, ## run a test scenario or only a default baseline?
   CoOccurrence=FALSE, ## run co-occurrence only; no gear threat model (speeds up model run time)
-  HighResolution=TRUE, ## Option to run in HighResolution mode. Slows model drammatically, not fully tested
+  HighResolution=FALSE, ## Option to run in HighResolution mode. Slows model drammatically, not fully tested
   PrintMapsInHighResolution=TRUE,  ##New for 3.0.3# AggregateTrawls=FALSE, ## option to aggregat trawl length distributions within vessel classes to decrease model run time.
   RelocationCostExp=1, ## Exponent applied to distance for calculate relocation cost around closures
   ExpressRedistribution=TRUE, ## spatially aggregate Gears in closures to decrease runtime with some loss of resolution

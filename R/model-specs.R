@@ -4,7 +4,7 @@ Action <- c("Closure",
             "GearReduction",
             "GearCap",
             "MaxRopeStrength",
-            "MaxTrapsWSingleLine",
+            "MaxGearSnglLn",
             "NoAction",
             "RopelessDevice",
             "StringLength")

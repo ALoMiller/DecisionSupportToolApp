@@ -1,177 +1,40 @@
 #Server code
 
 function(input, output, session) {
-  
+###### LEAFLET HELP MAP  
   output$help_map = renderLeaflet({
+    # Makes a leaflet map to visualize management areas
     
-    # initiates rendering. This all remains same for whole instance of app
     leaflet() %>%
       setView(lng = -68.73742, lat = 42.31386, zoom = 6) %>%
       addProviderTiles(providers$Esri.OceanBasemap) %>%
-      addScaleBar(position = 'bottomright', options = scaleBarOptions(maxWidth = 250))
+      addScaleBar(position = 'bottomright', options = scaleBarOptions(maxWidth = 250)) %>%
     
-  })
-  
-  
-  ###############################################################################################
-  ################### HORRIBLE CODE . NEED TO FIND A BETTER WAY #################################
-  ###############################################################################################
-  observeEvent(input$shapefile1, {
-    if(input$shapefile1 == T) {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile1")  %>%
-        addPolygons(group = "shapefile1" ,data = SouthShoreA ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
-    } else {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile1")
-    }
-  })
-  observeEvent(input$shapefile2, {
-    if(input$shapefile2 == T) {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile2")  %>%
-        addPolygons(group = "shapefile2" ,data = SouthShoreB ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
-    } else {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile2")
-    }
-  })
-  observeEvent(input$shapefile3, {
-    if(input$shapefile3 == T) {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile3")  %>%
-        addPolygons(group = "shapefile3" ,data = GB,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
-    } else {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile3")
-    }
-  })
-  observeEvent(input$shapefile4, {
-    if(input$shapefile4 == T) {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile4")  %>%
-        addPolygons(group = "shapefile4" ,data = GOM ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
-    } else {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile4")
-    }
-  })
-  observeEvent(input$shapefile5, {
-    if(input$shapefile5 == T) {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile5")  %>%
-        addPolygons(group = "shapefile5" ,data = SouthShoreC ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
-    } else {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile5")
-    }
-  })
-  observeEvent(input$shapefile6, {
-    if(input$shapefile6 == T) {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile6")  %>%
-        addPolygons(group = "shapefile6" ,data = CCBay ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
-    } else {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile6")
-    }
-  })
-  observeEvent(input$shapefile7, {
-    if(input$shapefile7 == T) {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile7")  %>%
-        addPolygons(group = "shapefile7" ,data = MassExpansion ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
-    } else {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile7")
-    }
-  })
-  observeEvent(input$shapefile8a, {
-    if(input$shapefile8a == T) {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile8a")  %>%
-        addPolygons(group = "shapefile8a" ,data =raster::subset(LCMAs,Name=="A1")  ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
-    } else {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile8a")
-    }
-  })
-  observeEvent(input$shapefile8b, {
-    if(input$shapefile8b == T) {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile8b")  %>%
-        addPolygons(group = "shapefile8b" ,data =raster::subset(LCMAs,Name=="A2") ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
-    } else {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile8b")
-    }
-  }) 
-  observeEvent(input$shapefile8c, {
-    if(input$shapefile8c == T) {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile8c")  %>%
-        addPolygons(group = "shapefile8c" ,data =raster::subset(LCMAs,Name=="A3")  ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
-    } else {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile8c")
-    }
-  })  
-  observeEvent(input$shapefile8d, {
-    if(input$shapefile8d == T) {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile8d")  %>%
-        addPolygons(group = "shapefile8d" ,data =raster::subset(LCMAs,Name=="A2_3overlap")  ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
-    } else {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile8d")
-    }
-  })  
-  observeEvent(input$shapefile9, {
-    if(input$shapefile9 == T) {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile9")  %>%
-        addPolygons(group = "shapefile9" ,data = MASS_RA ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
-    } else {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile9")
-    }
-  })
-  observeEvent(input$shapefile10, {
-    if(input$shapefile10 == T) {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile10")  %>%
-        addPolygons(group = "shapefile10" ,data = MASS_RANE ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
-    } else {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile10")
-    }
-  }) 
-  observeEvent(input$shapefile11, {
-    if(input$shapefile11 == T) {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile11")  %>%
-        addPolygons(group = "shapefile11" ,data = NEA_NR ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
-    } else {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile11")
-    }
-  })
-  observeEvent(input$shapefile12, {
-    if(input$shapefile12 == T) {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile12")  %>%
-        addPolygons(group = "shapefile12" ,data = NEA_WGOM ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
-    } else {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile12")
-    }
-  })
-  observeEvent(input$shapefile13, { #STatAreas
-    coords <- as.data.frame(coordinates(StatAreas))
-    colnames(coords) <- c("Long","Lat")
-    if(input$shapefile13 == T) {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile13")  %>%
-        addPolygons(group = "shapefile13" ,data = StatAreas , stroke = TRUE, color = '#5a5a5a', 
-                    opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>% 
-        addLabelOnlyMarkers(
-          group = "shapefile13",data = coords,lng = ~Long,
-          lat = ~Lat, label = ~as.character(StatAreas$Id),
-          labelOptions = labelOptions(noHide = T, textOnly = T))
-        # addAwesomeMarkers(group = "shapefile13",data = coords,lng = ~Long,lat = ~Lat, label = as.character(StatAreas$Id) )
-      
-    } else {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile13")
-    }
-  })
-
-  observeEvent(input$shapefile14, {
-    if(input$shapefile14 == T) {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile14")  %>%
-        addPolygons(group = "shapefile14" ,data = OffshoreA ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
-    } else {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile14")
-    }
-  })
-  observeEvent(input$shapefile15, {
-    if(input$shapefile15 == T) {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile15")  %>%
-        addPolygons(group = "shapefile15" ,data = TinyWedge ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
-    } else {
-      leafletProxy("help_map") %>% clearGroup(group = "shapefile15")
-    }
-  })
-  
-  
+      addPolygons(group = "StatAreas" ,data = StatAreas , stroke = TRUE, color = '#5a5a5a',
+                  opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
+      addPolygons(group = "Coast-3nm" ,data = zero2three , stroke = TRUE, color = '#5a5a5a',
+                   opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
+      addPolygons(group = "3-12nm" ,data = three2twelve , stroke = TRUE, color = '#5a5a5a',
+                  opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
+      addPolygons(group = "12nm-EEZ" ,data = twelve2EEZ , stroke = TRUE, color = '#5a5a5a',
+                  opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
+      # addPolygons(group = "Maine Zones" ,data = MaineA , stroke = TRUE, color = '#5a5a5a',
+      #             opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
+      # addPolygons(group = "Lobster Management Areas" ,data = LMAs , stroke = TRUE, color = '#5a5a5a',
+      #             opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
+      addLabelOnlyMarkers(
+              group = "StatAreas",data = coords,lng = ~Long,
+              lat = ~Lat, label = ~as.character(StatAreas$Id),
+              labelOptions = labelOptions(noHide = T, textOnly = T)) %>%
+    addLayersControl(
+      #overlayGroups = c(,"3-12nm","12nm-EEZ","SouthShoreAreas","StatAreas","Lobster Management Areas","Maine Zones"),
+      overlayGroups = c("Coast-3nm","3-12nm","12nm-EEZ","StatAreas"),
+      options = layersControlOptions(collapsed = FALSE)) %>%
+    #hideGroup(c("SouthShoreAreas","StatAreas","Coast-3nm","3-12nm","12nm-EEZ","Lobster Management Areas","Maine Zones"))
+      hideGroup(c("Coast-3nm","3-12nm","12nm-EEZ","StatAreas"))
+    })
+   
+##### MODEL INPUT SECTION
   observeEvent(input$update_list,{
   # get existing scenarios for listing as scenaerio inputs
   existing_input_csvs <- list.files(here::here("InputSpreadsheets"))
@@ -183,7 +46,18 @@ function(input, output, session) {
                     choices = c("",existing_input_scenarios),
                     selected = "")
   })
-
+  output$gearmap.ui <- renderUI({  #generates dynamic UI for fishery
+    switch(input$maprefname,
+           "Gillnet or Other Trap/Pot" = selectInput("gearmapname", "Select Gear Map:",
+                                                     choices = c("","GearMap_Gillnet_IEC_V3.0.0.Rdata",
+                                                                 "GearMap_OtherTrapPot_IEC_V3.0.0.Rdata","GearMap_NewEnglMultispecies_V3.0.0.Rdata",
+                                                                 "GearMap_Monkfish_V3.0.0.Rdata","DST_BlackSeaBass_Federal_v3.0.0.Rdata")
+           ),
+           "Lobster" = selectInput("gearmapname", "Select Gear Map:",
+                                   choices = c("","GearMap_Lobster_V3.0.0.Rdata","GearMap_Lobster_MassRMA_V3.0.0.Rdata")
+           )
+    )
+  })
 
   #Specifies table layout for custom input parameters
   output$hot = renderRHandsontable({
@@ -254,6 +128,7 @@ function(input, output, session) {
   
   #Observes the "Run Model" button-------------------------------------------------------------------
   observeEvent(input$run, {
+    showNotification(" Running... ",duration=NULL,id="running",type="message")
     
     #Converts table input into something shiny can use 
     
@@ -268,6 +143,13 @@ function(input, output, session) {
     param$Months <- as.character(param$Months)
     param <- param %>% dplyr::filter(Action != "")
     print(param)
+    
+    #specify fishery from plain language
+    if (input$maprefname == "Gillnet or Other Trap/Pot"){
+      maprefdomain <- "MapRef_3.0.2.Rdata"  
+    } else {
+      maprefdomain <- "MapRef_HR_Lobster_V3.0.0.Rdata"
+    }
     
     #Saves output and runs model
     print("Saving parameters to file.")
@@ -284,9 +166,13 @@ function(input, output, session) {
         print('About to run decision tool function.')
         run_decisiontool(HD=here::here(),
                          InputSpreadsheetName=paste0(input$filename,".csv"),
+                         MapRefDomain=maprefdomain,
                          GearMapName=input$gearmapname,
                          WhaleMapName=input$whalemapname,
-                         MapRefDomain=input$maprefdomain)
+                         CommentText=input$comment,
+                         TestScenario=input$testscenario,
+                         CoOccurrence=input$coOccur,
+                         HighResolution=input$highres)
             },
       error = function(e){
         message("Error in decision tool function.")
@@ -306,6 +192,8 @@ function(input, output, session) {
               paste0(here::here(),'/www/',input$filename,'_Tables.pdf'), overwrite = TRUE)
     file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_ThreatDistributions.pdf'),
               paste0(here::here(),'/www/',input$filename,'_ThreatDistributions.pdf'), overwrite = TRUE)
+    file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_DefaultFigures.pdf'),
+              paste0(here::here(),'/www/',input$filename,'_DefaultFigures.pdf'), overwrite = TRUE)
     file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_ScenarioFigures.pdf'),
               paste0(here::here(),'/www/',input$filename,'_ScenarioFigures.pdf'), overwrite = TRUE)
     existing_outputs <- list.files(here::here("Scenarios"))
@@ -313,6 +201,7 @@ function(input, output, session) {
                       "run_scenarios",
                       choices = c("",existing_outputs),
                       selected = input$filename)
+    removeNotification(id="running")
     
     
   })
@@ -322,25 +211,34 @@ function(input, output, session) {
     
     if(input$run_scenarios!=''){
     
-      output$pdfTables <- renderUI({
+    output$pdfTables <- renderUI({
       tags$iframe(style="height:800px; width:100%", src=paste0(input$run_scenarios,"_Tables.pdf"))
     }) #adds pdf outputs for figures and tables
-      print(file.exists(paste0(here::here(),"/Scenarios/",input$run_scenarios,"/",
-                   input$run_scenarios,"_GearRedistributionFigures.pdf")))
-
     output$pdfGearRedFigs <- renderUI({
       if(file.exists(paste0(here::here(),"/Scenarios/",input$run_scenarios,"/",input$run_scenarios,"_GearRedistributionFigures.pdf"))){
         tags$iframe(style="height:800px; width:100%", src=paste0(input$run_scenarios,"_GearRedistributionFigures.pdf"))
       } else {
-        HTML("No Gear Redistribution was required for this scenario run.")
+        HTML("Gear redistribution maps not generated for this scenario run.")
       }
     }) #adds pdf outputs for figures and tables
     output$pdfThreatDist <- renderUI({
       tags$iframe(style="height:800px; width:100%", src=paste0(input$run_scenarios,"_ThreatDistributions.pdf"))
     }) #adds pdf outputs for figures and tables
-    output$pdfScenFigs <- renderUI({
-      tags$iframe(style="height:800px; width:100%", src=paste0(input$run_scenarios,"_ScenarioFigures.pdf"))
-      }) #adds pdf outputs for figures and tables
+    output$pdfDefaultFigs <- renderUI({
+      if(file.exists(paste0(here::here(),"/Scenarios/",input$run_scenarios,"/",input$run_scenarios,"_DefaultFigures.pdf"))){
+        tags$iframe(style="height:800px; width:100%", src=paste0(input$run_scenarios,"_DefaultFigures.pdf"))
+      } else {
+        HTML("Default maps not generated for this model run.")
+      }
+      })
+    output$pdfScenarioFigs <- renderUI({
+      if(file.exists(paste0(here::here(),"/Scenarios/",input$run_scenarios,"/",input$run_scenarios,"_ScenarioFigures.pdf"))){
+        tags$iframe(style="height:800px; width:100%", src=paste0(input$run_scenarios,"_ScenarioFigures.pdf"))
+      } else {
+        HTML("Scenario maps not generated for this scenario run.")
+      }
+    }) #adds pdf outputs for figures and tables
+    
     }
   
     })

@@ -1,5 +1,5 @@
 ## Stat Areas
-shapefilePath <- here::here("InputShapefiles")
+shapefilePath <- "/net/shiny1/amiller/DST/InputShapefiles"
 
 message("Reading in shapefiles ...")
 
@@ -10,7 +10,7 @@ message("Reading in shapefiles ...")
 # MaineD <-  sf::st_read(dsn = here::here("TempShapefiles"), layer = 'Maine_Zone_D',quiet = T)
 # MaineE <-  sf::st_read(dsn = here::here("TempShapefiles"), layer = 'Maine_Zone_E',quiet = T)
 # MaineF <-  sf::st_read(dsn = here::here("TempShapefiles"), layer = 'Maine_Zone_F',quiet = T)
-cMaineG <-  sf::st_read(dsn = here::here("TempShapefiles"), layer = 'Maine_Zone_G',quiet = T)
+MaineG <-  sf::st_read(dsn = "/net/shiny1/amiller/DST/TempShapefiles", layer = 'Maine_Zone_G',quiet = T)
 
 # LMAs <-  sf::st_read(dsn = shapefilePath, layer = 'Lobster_Management_Areas',quiet = T)
 

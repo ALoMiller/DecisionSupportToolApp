@@ -1,13 +1,18 @@
- Version="DecisionSupportTool_V3.0.7.R"
- HD="/net/shiny1/amiller/DST"
- source("/net/shiny1/amiller/DST/function_DecisionSupportTool_V3.0.7.R")
+Version="DecisionSupportTool_V3.0.7.R"
+HD=here::here()
+InputSpreadsheetName="test7.csv"
+#GearMapName="GearMap_Lobster_V3.0.0.Rdata"
+GearMapName="GearMap_Monkfish_V3.0.0.Rdata"
+WhaleMapName="Duke_RightWhaleModel_v10_1018.Rdata"
+#MapRefDomain="MapRef_HR_Lobster_V3.0.0.Rdata"
+MapRefDomain="MapRef_3.0.2.Rdata"
+CommentText=""
+TestScenario=FALSE
+CoOccurrence=TRUE
+HighResolution=FALSE
+
+source("/net/shiny1/amiller/DST/function_DecisionSupportTool_V3.0.7.R")
  
-run_decisiontool <- function(HD=HD,InputSpreadsheetName="ScenarioTemplate_V3.0.1.csv",
-                             GearMapName="GearMap_Lobster_V3.0.0.Rdata",
-                             MapRefDomain="MapRef_3.0.2.Rdata",
-                             WhaleMapName="Duke_RightWhaleModel_v10_1018.Rdata",
-                             CommentText="",TestScenario=TRUE,CoOccurrence=FALSE,
-                             HighResolution=FALSE){
   DecisionTool(
     HomeDir=HD, ## home directory for subdirectories
     ModelVersion=Version, ## model version
@@ -42,4 +47,3 @@ run_decisiontool <- function(HD=HD,InputSpreadsheetName="ScenarioTemplate_V3.0.1
     PrintSummary=TRUE,
     ArchiveInputSpreadsheet=FALSE ## v2.2.6 move input spreadsheet to output file?
   )  
-}

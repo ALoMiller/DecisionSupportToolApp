@@ -38,6 +38,9 @@ rsconnect/
 
 #files & folders
 #Scenarios
+/Scenarios
+/InputSpreadsheets
+/www
 *.pdf
 *.html
 other

@@ -1,4 +1,5 @@
 #Server code
+#Source helper functions
 
 function(input, output, session) {
 ###### LEAFLET HELP MAP  
@@ -36,8 +37,14 @@ function(input, output, session) {
    
 ##### MODEL INPUT SECTION
   observeEvent(input$update_list,{
-  # get existing scenarios for listing as scenaerio inputs
-  existing_input_csvs <- list.files(here::here("InputSpreadsheets"))
+    HD="/net/shiny1/amiller/DST"
+    r.dir <-"/net/shiny1/amiller/DST/R"
+    # get existing scenarios for listing as scenaerio inputs
+    if (!fs::dir_exists(paste0(HD,'/InputSpreadsheets'))) fs::dir_create(paste0(HD,'/InputSpreadsheets'))
+    file.copy(paste0(HD,'/InputSpreadsheetsTemplate/ScenarioTemplate_V3.0.1.csv'),
+              paste0(HD,'/InputSpreadsheets/ScenarioTemplate_V3.0.1.csv'), overwrite = TRUE)
+    
+  existing_input_csvs <- list.files("/net/shiny1/amiller/DST/InputSpreadsheets")
   existing_input_scenarios <- stringr::str_remove(existing_input_csvs, ".csv|.xlsx")
 
   # Can also set the label and select items
@@ -85,8 +92,11 @@ function(input, output, session) {
       #Show filled template if input file is chosen
     } else {
       print(paste("Selected model:",input$existing_scenarios))
-   
-      DF <- read.csv(paste0(here::here("InputSpreadsheets",input$existing_scenarios),".csv"))
+      if (!fs::dir_exists(paste0(HD,'/InputSpreadsheets'))) fs::dir_create(paste0(HD,'/InputSpreadsheets'))
+      file.copy(paste0(HD,'/InputSpreadsheetsTemplate/ScenarioTemplate_V3.0.1.csv'),
+                paste0(HD,'/InputSpreadsheets/ScenarioTemplate_V3.0.1.csv'), overwrite = TRUE)
+      
+      DF <- read.csv(paste0(HD,"/InputSpreadsheets/",input$existing_scenarios,".csv"))
       
       rhandsontable(DF, stretchH = "all", readOnly  = F) %>% 
         hot_cols(colWidths = c(100,50)) %>% 
@@ -154,17 +164,19 @@ function(input, output, session) {
     #Saves output and runs model
     print("Saving parameters to file.")
     write.csv(param, 
-              file = paste0(here::here("InputSpreadsheets",input$filename),".csv"), na="",row.names = F) #make trap for existing files
+              file = paste0(HD,"/InputSpreadsheets/",input$filename,".csv"), na="",row.names = F) #make trap for existing files
     #Run decision tool function here. Will print messages associated w/ function in UI
     withCallingHandlers({
       shinyjs::html("run-text", "")
       tryCatch({
-      r.dir <- here::here("R")
+        HD="/net/shiny1/amiller/DST"
+        r.dir <- "/net/shiny1/amiller/DST/R"
       source(file.path(r.dir,"run_decisiontool.R"))
-      source(paste0(here::here(),"/function_DecisionSupportTool_V3.0.6.R"))
+      source(paste0(HD,"/function_DecisionSupportTool_V3.0.7.R"))
+        if (!fs::dir_exists(paste0(HD,'/Scenarios'))) fs::dir_create(paste0(HD,'/Scenarios'))
       
         print('About to run decision tool function.')
-        run_decisiontool(HD=here::here(),
+        run_decisiontool(HD=HD,
                          InputSpreadsheetName=paste0(input$filename,".csv"),
                          MapRefDomain=maprefdomain,
                          GearMapName=input$gearmapname,
@@ -184,19 +196,19 @@ function(input, output, session) {
       shinyjs::html(id = "run-text", html = paste0(m$message,"<br>"), add = TRUE)
     })
     #creates the www directory for tags$iframe embedding pdf output files into the app
-    if (!fs::dir_exists(paste0(here::here(),'/www'))) fs::dir_create(paste0(here::here(),'/www'))
+    if (!fs::dir_exists(paste0(HD,'/www'))) fs::dir_create(paste0(HD,'/www'))
     #move pdf output files into www directory
-    file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_GearRedistributionFigures.pdf'),
-              paste0(here::here(),'/www/',input$filename,'_GearRedistributionFigures.pdf'), overwrite = TRUE)
-    file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_Tables.pdf'),
-              paste0(here::here(),'/www/',input$filename,'_Tables.pdf'), overwrite = TRUE)
-    file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_ThreatDistributions.pdf'),
-              paste0(here::here(),'/www/',input$filename,'_ThreatDistributions.pdf'), overwrite = TRUE)
-    file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_DefaultFigures.pdf'),
-              paste0(here::here(),'/www/',input$filename,'_DefaultFigures.pdf'), overwrite = TRUE)
-    file.copy(paste0(here::here(),'/Scenarios/',input$filename,'/',input$filename,'_ScenarioFigures.pdf'),
-              paste0(here::here(),'/www/',input$filename,'_ScenarioFigures.pdf'), overwrite = TRUE)
-    existing_outputs <- list.files(here::here("Scenarios"))
+    file.copy(paste0(HD,'/Scenarios/',input$filename,'/',input$filename,'_GearRedistributionFigures.pdf'),
+              paste0(HD,'/www/',input$filename,'_GearRedistributionFigures.pdf'), overwrite = TRUE)
+    file.copy(paste0(HD,'/Scenarios/',input$filename,'/',input$filename,'_Tables.pdf'),
+              paste0(HD,'/www/',input$filename,'_Tables.pdf'), overwrite = TRUE)
+    file.copy(paste0(HD,'/Scenarios/',input$filename,'/',input$filename,'_ThreatDistributions.pdf'),
+              paste0(HD,'/www/',input$filename,'_ThreatDistributions.pdf'), overwrite = TRUE)
+    file.copy(paste0(HD,'/Scenarios/',input$filename,'/',input$filename,'_DefaultFigures.pdf'),
+              paste0(HD,'/www/',input$filename,'_DefaultFigures.pdf'), overwrite = TRUE)
+    file.copy(paste0(HD,'/Scenarios/',input$filename,'/',input$filename,'_ScenarioFigures.pdf'),
+              paste0(HD,'/www/',input$filename,'_ScenarioFigures.pdf'), overwrite = TRUE)
+    existing_outputs <- list.files("/net/shiny1/amiller/DST/Scenarios")
     updateSelectInput(session,
                       "run_scenarios",
                       choices = c("",existing_outputs),
@@ -215,7 +227,7 @@ function(input, output, session) {
       tags$iframe(style="height:800px; width:100%", src=paste0(input$run_scenarios,"_Tables.pdf"))
     }) #adds pdf outputs for figures and tables
     output$pdfGearRedFigs <- renderUI({
-      if(file.exists(paste0(here::here(),"/Scenarios/",input$run_scenarios,"/",input$run_scenarios,"_GearRedistributionFigures.pdf"))){
+      if(file.exists(paste0(HD,"/Scenarios/",input$run_scenarios,"/",input$run_scenarios,"_GearRedistributionFigures.pdf"))){
         tags$iframe(style="height:800px; width:100%", src=paste0(input$run_scenarios,"_GearRedistributionFigures.pdf"))
       } else {
         HTML("Gear redistribution maps not generated for this scenario run.")
@@ -225,14 +237,14 @@ function(input, output, session) {
       tags$iframe(style="height:800px; width:100%", src=paste0(input$run_scenarios,"_ThreatDistributions.pdf"))
     }) #adds pdf outputs for figures and tables
     output$pdfDefaultFigs <- renderUI({
-      if(file.exists(paste0(here::here(),"/Scenarios/",input$run_scenarios,"/",input$run_scenarios,"_DefaultFigures.pdf"))){
+      if(file.exists(paste0(HD,"/Scenarios/",input$run_scenarios,"/",input$run_scenarios,"_DefaultFigures.pdf"))){
         tags$iframe(style="height:800px; width:100%", src=paste0(input$run_scenarios,"_DefaultFigures.pdf"))
       } else {
         HTML("Default maps not generated for this model run.")
       }
       })
     output$pdfScenarioFigs <- renderUI({
-      if(file.exists(paste0(here::here(),"/Scenarios/",input$run_scenarios,"/",input$run_scenarios,"_ScenarioFigures.pdf"))){
+      if(file.exists(paste0(HD,"/Scenarios/",input$run_scenarios,"/",input$run_scenarios,"_ScenarioFigures.pdf"))){
         tags$iframe(style="height:800px; width:100%", src=paste0(input$run_scenarios,"_ScenarioFigures.pdf"))
       } else {
         HTML("Scenario maps not generated for this scenario run.")
@@ -244,16 +256,19 @@ function(input, output, session) {
     })
 
   output$renderedReadme <- renderUI({           
-    includeHTML(rmarkdown::render(input = paste0(here::here(),"/README.md"), "html_document"))
+    includeHTML(rmarkdown::render(input = paste0(HD,"/README.md"), "html_document"))
   })
   session$onSessionEnded(function() {
-    unlink(isolate(paste0(here::here(),'/www')),recursive=TRUE) #Removes www folder when Shiny session ends 
-    #Collect files generated during app session to remove when app closes
-    template = "ScenarioTemplate_V3.0.1"
-    sessionfiles = list.files(paste0(here::here(),"/Scenarios/"))
-    filestoremove = setdiff(sessionfiles,template)
-    #removes Scenario folders generated during session
-    unlink(isolate(paste0(here::here(),"/Scenarios/",filestoremove)),recursive=TRUE)
-    #removes input spreadsheets generated during session
-    unlink(isolate(paste0(here::here(),"/InputSpreadsheets/",filestoremove,'.csv')),recursive=TRUE) })
+    unlink(isolate(paste0(HD,'/www')),recursive=TRUE) #Removes www folder when Shiny session ends 
+    unlink(isolate(paste0(HD,'/InputSpreadsheets')),recursive=TRUE) #Removes InputSpreadsheets folder when Shiny session ends 
+    unlink(isolate(paste0(HD,'/Scenarios')),recursive=TRUE) #Removes InputSpreadsheets folder when Shiny session ends 
+    # #Collect files generated during app session to remove when app closes
+    # template = "ScenarioTemplate_V3.0.1"
+    # sessionfiles = list.files(paste0(HD,"/Scenarios/"))
+    # filestoremove = setdiff(sessionfiles,template)
+    # #removes Scenario folders generated during session
+    # unlink(isolate(paste0(HD,"/Scenarios/",filestoremove)),recursive=TRUE)
+    # #removes input spreadsheets generated during session
+    # unlink(isolate(paste0(HD,"/InputSpreadsheets/",filestoremove,'.csv')),recursive=TRUE) 
+    })
 }

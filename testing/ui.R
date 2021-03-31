@@ -4,7 +4,8 @@ library(leaflet)
 library(dplyr)
 
 #Source helper functions
-r.dir <- here::here("R")
+HD="/net/shiny1/amiller/DST"
+r.dir <-"/net/shiny1/amiller/DST/R"
 
 source(file.path(r.dir,"read_shapefiles.R"))
 source(file.path(r.dir,"model-specs.R"))
@@ -13,7 +14,7 @@ source(file.path(r.dir,"run_decisiontool.R"))
 
 #A zoom effect for boxes
 setZoom <- shinyEffects::setZoom
-existing_outputs <- list.files(here::here("Scenarios"))
+existing_outputs <- list.files("/net/shiny1/amiller/DST/Scenarios")
 
 #User interface
 

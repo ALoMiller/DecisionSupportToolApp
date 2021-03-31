@@ -190,7 +190,7 @@ DecisionTool=function(
     
     ####################### Misc Functions ############################--
     source(paste(HD, "/FunctionsEtc/functionsDecisionSupportTool_V3.0.3.R", sep=""))
-    print(paste("Running ", InputSpreadsheetName))
+    message(paste("Running ", InputSpreadsheetName))
     
     ## capture model configuration information 
     ModelConfiguration=data.frame(ModelConfiguration=c(
@@ -231,7 +231,7 @@ DecisionTool=function(
     if(dir.exists(HomeDir)){
       HD=HomeDir; setwd(HD)
     } else {
-      print("Error: Home Directory does not exist"); return(HD)
+      message("Error: Home Directory does not exist"); return(HD)
     }
     
     OutputDir=gsub(".csv", "", InputSpreadsheetName); OutputDir
@@ -251,7 +251,7 @@ DecisionTool=function(
   ## 0.0 Load standard inputs #############################################--
   
   if(Fold) { 
-    print("Loading Data")
+    message("Loading Data")
     ## 0.1 Start with Gear per grid by month. 
     ## This is calculated from the Area 3 Vertical Line model as a function of the number of vertical lines and String lengths. 
     ## For Area 3, this need to be modeled separately for the crab and lobster fishery with two different classes of lobster vessels.
@@ -269,7 +269,7 @@ DecisionTool=function(
     if(file.exists(paste0(HD, "/Inputs/", GearMapName))){ 
       load(paste0(HD, "/Inputs/", GearMapName))
     } else {
-      print("Error: Specified Gear Map not found"); return(paste0(HD, "/Inputs/", GearMapName))
+      message("Error: Specified Gear Map not found"); return(paste0(HD, "/Inputs/", GearMapName))
     }
     # names(GearPerStringModel)[names(GearPerStringModel)=="GearPerString"]="GearPerString"
     
@@ -322,7 +322,7 @@ DecisionTool=function(
         # names(LineStrengthMod)=c("GearPerStringInt", "RopeStrength", "Prop_Strength")
         names(LineStrengthMod)=c("GearPerString_Applied", "RopeStrength", "Prop_Strength") ## V2.1.8 field name change
       } else {
-        print("Error: Specified rope strength  model not found"); return(RopeStrengthString)
+        message("Error: Specified rope strength  model not found"); return(RopeStrengthString)
       }; 
       # summary(LineStrengthMod)
       
@@ -383,7 +383,7 @@ DecisionTool=function(
         # xyplot(Threat~RopeStrength, ModRopeThreat, groups=ThreatMod, type=c("b", "g"))
         
       } else {
-        print("Error: Specified threat model not found"); return(ThreatString)
+        message("Error: Specified threat model not found"); return(ThreatString)
       }
     } ## end load rope threat model
     
@@ -397,7 +397,7 @@ DecisionTool=function(
     # if(file.exists(paste0(HD, "/Inputs/", StringLengthModelName))){
     #   load(paste0(HD, "/Inputs/", StringLengthModelName))
     # } else {
-    #   print("Error: Specified String Length Model not found"); return(paste0(HD, "/Inputs/", StringLengthModelName))
+    #   message("Error: Specified String Length Model not found"); return(paste0(HD, "/Inputs/", StringLengthModelName))
     # }
     # names(StringLengthModel)=c("Region","VesselKey","Month","GearPerString","StringProportion","StringUnitCost") #V2.1.8 Found a bug!
     # 
@@ -413,7 +413,7 @@ DecisionTool=function(
     if(file.exists(WhaleString)){
       load(WhaleString);
     } else {
-      print("Error: Specified Whale Model file not found"); return(WhaleString)
+      message("Error: Specified Whale Model file not found"); return(WhaleString)
     }
     dim(WhaleDensityModel)
     #summary(WhaleDensityModel)
@@ -436,7 +436,7 @@ DecisionTool=function(
   
   if(Fold) { ## load GIS layers and bathymetry
     ShapefileDir=paste(HD, "/InputShapefiles", sep="")
-    print("Loading Shapefiles")
+    message("Loading Shapefiles")
     spStatAreas=readOGR(dsn=ShapefileDir, 
                         # layer="StatAreas_DecisionTool",
                         layer="StatAreas_DST_V3_SmoothCoast", ## v3.0.6
@@ -504,15 +504,15 @@ DecisionTool=function(
               InputSpreadsheetName, ## file name
               sep="/"), stringsAsFactors=FALSE, na.strings=""); 
     } else {
-      print("Error: InputSpreadsheet not found in expected directory"); return(paste("InputSpreadsheets", ## subdirectory
+      message("Error: InputSpreadsheet not found in expected directory"); return(paste("InputSpreadsheets", ## subdirectory
                                                                                      InputSpreadsheetName, ## file name
                                                                                      sep="/"))
     }
     
     ScenarioInputs=ScenarioInputs[!is.na(ScenarioInputs$Action), ]
     if(nrow(ScenarioInputs)==0){ ## v2.2.6
-      print("No actions specified in the input spreadsheet.")
-      print("If no actions are desired, enter 'NoAction' under 'Actions' in the input spreadsheet")
+      message("No actions specified in the input spreadsheet.")
+      message("If no actions are desired, enter 'NoAction' under 'Actions' in the input spreadsheet")
       return(paste("InputSpreadsheets", ## subdirectory
                    InputSpreadsheetName, ## file name
                    sep="/"))
@@ -559,42 +559,42 @@ DecisionTool=function(
       
       
       if(!all(ScenarioInputs$Action %in% AvailableActions, na.rm=TRUE)) {
-        print("Error in InputSpreadsheet: Unrecognized input in 'Action' field"); return(ScenarioInputs$Action)
+        message("Error in InputSpreadsheet: Unrecognized input in 'Action' field"); return(ScenarioInputs$Action)
       }
       
       if(!all(na.omit(ScenarioInputs$LMA) %in% AvailableLMAs)) {
-        print("Error in InputSpreadsheet: Unrecognized input in 'LMA' field"); return(ScenarioInputs$LMA)
+        message("Error in InputSpreadsheet: Unrecognized input in 'LMA' field"); return(ScenarioInputs$LMA)
       }
       
       if(!all(na.omit(ScenarioInputs$State) %in% AvailableStates)) {
-        print("Error in InputSpreadsheet: Unrecognized input in 'State' field"); return(ScenarioInputs$State)
+        message("Error in InputSpreadsheet: Unrecognized input in 'State' field"); return(ScenarioInputs$State)
       }
       
       if(!all(na.omit(ScenarioInputs$Fishery) %in% AvailableFisheries)) {
-        print("Error in InputSpreadsheet: Unrecognized input in 'Fishery' field"); return(ScenarioInputs$Fishery)
+        message("Error in InputSpreadsheet: Unrecognized input in 'Fishery' field"); return(ScenarioInputs$Fishery)
       }
       
       if(!all(na.omit(ScenarioInputs$StatArea) %in% AvailableStatAreas)) {
-        print("Error in InputSpreadsheet: Unrecognized input in 'StatArea' field"); return(ScenarioInputs$StatArea)
+        message("Error in InputSpreadsheet: Unrecognized input in 'StatArea' field"); return(ScenarioInputs$StatArea)
       }
       
       if(!all(na.omit(ScenarioInputs$StringRegulation) %in% AvailableStringRegulations)) {
-        print("Error in InputSpreadsheet: Unrecognized input in 'StringRegulation' field"); return(ScenarioInputs$StringRegulation)
+        message("Error in InputSpreadsheet: Unrecognized input in 'StringRegulation' field"); return(ScenarioInputs$StringRegulation)
       }
       
       if(!all(na.omit(ScenarioInputs$MaxRopeStrength) >= min(AvailableMaxRopeStrength) ) &
          !all(na.omit(ScenarioInputs$MaxRopeStrength) <= max(AvailableMaxRopeStrength) ) ) {
-        print("Error in InputSpreadsheet: 'MaxRopeStrength' field out of bounds"); return(ScenarioInputs$MaxRopeStrength)
+        message("Error in InputSpreadsheet: 'MaxRopeStrength' field out of bounds"); return(ScenarioInputs$MaxRopeStrength)
       }
       
       ## check that max rope strengths match available values in ModRopeStrength
       
       if(!all(na.omit(ScenarioInputs$BuoylineDevice) %in% AvailableBuoylineDevice)) {
-        print("Error in InputSpreadsheet: Unrecognized input in 'BuoylineDevice' field"); return(ScenarioInputs$BuoylineDevice)
+        message("Error in InputSpreadsheet: Unrecognized input in 'BuoylineDevice' field"); return(ScenarioInputs$BuoylineDevice)
       }
       
       if(!all(na.omit(ScenarioInputs$RopelessDevice) %in% AvailableRopelessDevice)) {
-        print("Error in InputSpreadsheet: Unrecognized input in 'RopelessDevice' field"); return(ScenarioInputs$RopelessDevice)
+        message("Error in InputSpreadsheet: Unrecognized input in 'RopelessDevice' field"); return(ScenarioInputs$RopelessDevice)
       }
     } ## check constraints on inputs for typos, etc.
     
@@ -606,31 +606,31 @@ DecisionTool=function(
       if(nrow(Constraints_Spatial)>0){
         for(i in 1:nrow(Constraints_Spatial)){
           if(!is.na(Constraints_Spatial$Fishery[i])){
-            print("Warning: In input csv, non-Null input in Fishery field under Constraints_Spatial")
+            message("Warning: In input csv, non-Null input in Fishery field under Constraints_Spatial")
           }
           if(!is.na(Constraints_Spatial$Percentage[i])){
-            print("Warning: In input csv, non-Null input in Percentage field under Constraints_Spatial")
+            message("Warning: In input csv, non-Null input in Percentage field under Constraints_Spatial")
           }
           if(!is.na(Constraints_Spatial$StringRegulation[i])){
-            print("Warning: In input csv, non-Null input in StringRegulation field under Constraints_Spatial")
+            message("Warning: In input csv, non-Null input in StringRegulation field under Constraints_Spatial")
           }
           if(!is.na(Constraints_Spatial$StringLen[i])){
-            print("Warning: In input csv, non-Null input in StringRegulation field under Constraints_Spatial")
+            message("Warning: In input csv, non-Null input in StringRegulation field under Constraints_Spatial")
           }
           if(!is.na(Constraints_Spatial$MaxRopeStrength[i])){
-            print("Warning: In input csv, non-Null input in MaxRopeStrength field under Constraints_Spatial")
+            message("Warning: In input csv, non-Null input in MaxRopeStrength field under Constraints_Spatial")
           }
           if(!is.na(Constraints_Spatial$BuoylineDevice[i])){
-            print("Warning: In input csv, non-Null input in BuoylineDevice field under Constraints_Spatial")
+            message("Warning: In input csv, non-Null input in BuoylineDevice field under Constraints_Spatial")
           }
           if(!is.na(Constraints_Spatial$RopelessDevice[i])){
-            print("Warning: In input csv, non-Null input in RopelessDevice field under Constraints_Spatial")
+            message("Warning: In input csv, non-Null input in RopelessDevice field under Constraints_Spatial")
           }
           if(!is.na(Constraints_Spatial$GearCap[i])){
-            print("Warning: In input csv, non-Null input in GearCap field under Constraints_Spatial")
+            message("Warning: In input csv, non-Null input in GearCap field under Constraints_Spatial")
           }
           if(!is.na(Constraints_Spatial$MaxGearSnglLn[i])){
-            print("Warning: In input csv, non-Null input in MaxGearSnglLn field under Constraints_Spatial")
+            message("Warning: In input csv, non-Null input in MaxGearSnglLn field under Constraints_Spatial")
           }
         }
         Constraints_Spatial=Constraints_Spatial[ ,c("Action", "LMA", "State", "StatArea", "Shapefile")]
@@ -640,50 +640,50 @@ DecisionTool=function(
       if(nrow(Constraints_Fishery)>0){
         for(i in 1:nrow(Constraints_Fishery)){
           if(!is.na(Constraints_Fishery$LMA[i])){
-            print("Warning: In input csv, non-Null input in LMA field under Constraints_Fishery")
+            message("Warning: In input csv, non-Null input in LMA field under Constraints_Fishery")
           }
           if(!is.na(Constraints_Fishery$State[i])){
-            print("Warning: In input csv, non-Null input in State field under Constraints_Fishery")
+            message("Warning: In input csv, non-Null input in State field under Constraints_Fishery")
           }
           if(!is.na(Constraints_Fishery$StatArea[i])){
-            print("Warning: In input csv, non-Null input in StatArea field under Constraints_Fishery")
+            message("Warning: In input csv, non-Null input in StatArea field under Constraints_Fishery")
           }
           if(!is.na(Constraints_Fishery$Shapefile[i])){
-            print("Warning: In input csv, non-Null input in Shapefile field under Constraints_Fishery")
+            message("Warning: In input csv, non-Null input in Shapefile field under Constraints_Fishery")
           }
           if(!is.na(Constraints_Fishery$Months[i])){
-            print("Warning: In input csv, non-Null input in Months field under Constraints_Fishery")
+            message("Warning: In input csv, non-Null input in Months field under Constraints_Fishery")
           }
           # if(!is.na(Constraints_Fishery$Fishery[i])){
-          #   print("Warning: In input csv, non-Null input in Fishery field under Constraints_Fishery")
+          #   message("Warning: In input csv, non-Null input in Fishery field under Constraints_Fishery")
           # }
           if(!is.na(Constraints_Fishery$Percentage[i])){
-            print("Warning: In input csv, non-Null input in Percentage field under Constraints_Fishery")
+            message("Warning: In input csv, non-Null input in Percentage field under Constraints_Fishery")
           }
           if(!is.na(Constraints_Fishery$StringRegulation[i])){
-            print("Warning: In input csv, non-Null input in StringRegulation field under Constraints_Fishery")
+            message("Warning: In input csv, non-Null input in StringRegulation field under Constraints_Fishery")
           }
           if(!is.na(Constraints_Fishery$StringLen[i])){
-            print("Warning: In input csv, non-Null input in StringRegulation field under Constraints_Fishery")
+            message("Warning: In input csv, non-Null input in StringRegulation field under Constraints_Fishery")
           }
           if(!is.na(Constraints_Fishery$MaxRopeStrength[i])){
-            print("Warning: In input csv, non-Null input in MaxRopeStrength field under Constraints_Fishery")
+            message("Warning: In input csv, non-Null input in MaxRopeStrength field under Constraints_Fishery")
           }
           if(!is.na(Constraints_Fishery$BuoylineDevice[i])){
-            print("Warning: In input csv, non-Null input in BuoylineDevice field under Constraints_Fishery")
+            message("Warning: In input csv, non-Null input in BuoylineDevice field under Constraints_Fishery")
           }
           if(!is.na(Constraints_Fishery$RopelessDevice[i])){
-            print("Warning: In input csv, non-Null input in RopelessDevice field under Constraints_Fishery")
+            message("Warning: In input csv, non-Null input in RopelessDevice field under Constraints_Fishery")
           }
           if(!is.na(Constraints_Fishery$GearCap[i])){
-            print("Warning: In input csv, non-Null input in GearCap field under Constraints_Fishery")
+            message("Warning: In input csv, non-Null input in GearCap field under Constraints_Fishery")
           }
           if(!is.na(Constraints_Fishery$MaxGearSnglLn[i])){
-            print("Warning: In input csv, non-Null input in MaxGearSnglLn field under Constraints_Fishery")
+            message("Warning: In input csv, non-Null input in MaxGearSnglLn field under Constraints_Fishery")
           }
           ###            
           if(is.na(Constraints_Fishery$Fishery[i])){
-            print("Error: In input csv, Null value in required field Fishery field under Constraints_Fishery"); ScenarioInputPass=FALSE
+            message("Error: In input csv, Null value in required field Fishery field under Constraints_Fishery"); ScenarioInputPass=FALSE
           }
         }
         Constraints_Fishery=Constraints_Fishery[ ,c("Action", "Fishery")]
@@ -694,42 +694,42 @@ DecisionTool=function(
       if(nrow(SC_Closures)>0){
         for(i in 1:nrow(SC_Closures)){
           if(!is.na(SC_Closures$LMA[i])){
-            print("Warning: In input csv, non-Null input in LMA field under Closures")
+            message("Warning: In input csv, non-Null input in LMA field under Closures")
           }
           if(!is.na(SC_Closures$State[i])){
-            print("Warning: In input csv, non-Null input in State field under Closures")
+            message("Warning: In input csv, non-Null input in State field under Closures")
           }
           if(!is.na(SC_Closures$StatArea[i])){
-            print("Warning: In input csv, non-Null input in StatArea field under Closures")
+            message("Warning: In input csv, non-Null input in StatArea field under Closures")
           }
           if(!is.na(SC_Closures$Fishery[i])){
-            print("Warning: In input csv, non-Null input in Fishery field under Closures")
+            message("Warning: In input csv, non-Null input in Fishery field under Closures")
           }
           
           if(!is.na(SC_Closures$StringRegulation[i])){
-            print("Warning: In input csv, non-Null input in StringRegulation field under Closures")
+            message("Warning: In input csv, non-Null input in StringRegulation field under Closures")
           }
           if(!is.na(SC_Closures$StringLen[i])){
-            print("Warning: In input csv, non-Null input in StringRegulation field under Closures")
+            message("Warning: In input csv, non-Null input in StringRegulation field under Closures")
           }
           if(!is.na(SC_Closures$MaxRopeStrength[i])){
-            print("Warning: In input csv, non-Null input in MaxRopeStrength field under Closures")
+            message("Warning: In input csv, non-Null input in MaxRopeStrength field under Closures")
           }
           if(!is.na(SC_Closures$BuoylineDevice[i])){
-            print("Warning: In input csv, non-Null input in BuoylineDevice field under Closures")
+            message("Warning: In input csv, non-Null input in BuoylineDevice field under Closures")
           }
           if(!is.na(SC_Closures$RopelessDevice[i])){
-            print("Warning: In input csv, non-Null input in RopelessDevice field under Closures")
+            message("Warning: In input csv, non-Null input in RopelessDevice field under Closures")
           }
           if(!is.na(SC_Closures$GearCap[i])){
-            print("Warning: In input csv, non-Null input in GearCap field under Closures")
+            message("Warning: In input csv, non-Null input in GearCap field under Closures")
           }
           if(!is.na(SC_Closures$MaxGearSnglLn[i])){
-            print("Warning: In input csv, non-Null input in MaxGearSnglLn field under Closures")
+            message("Warning: In input csv, non-Null input in MaxGearSnglLn field under Closures")
           }
           ###            
           if(is.na(SC_Closures$Shapefile[i])){
-            print("Error: In input csv, Null value in required field Shapefile field under Closures"); ScenarioInputPass=FALSE
+            message("Error: In input csv, Null value in required field Shapefile field under Closures"); ScenarioInputPass=FALSE
           }
         }
         SC_Closures=SC_Closures[ ,c("Action", "Shapefile", "Months", "Percentage")]
@@ -742,33 +742,33 @@ DecisionTool=function(
         for(i in 1:nrow(SC_GearReductions)){
           
           if(!is.na(SC_GearReductions$Fishery[i])){
-            print("Warning: In input csv, non-Null input in Fishery field under GearReductions")
+            message("Warning: In input csv, non-Null input in Fishery field under GearReductions")
           }
           
           if(!is.na(SC_GearReductions$StringRegulation[i])){
-            print("Warning: In input csv, non-Null input in StringRegulation field under GearReductions")
+            message("Warning: In input csv, non-Null input in StringRegulation field under GearReductions")
           }
           if(!is.na(SC_GearReductions$StringLen[i])){
-            print("Warning: In input csv, non-Null input in StringRegulation field under GearReductions")
+            message("Warning: In input csv, non-Null input in StringRegulation field under GearReductions")
           }
           if(!is.na(SC_GearReductions$MaxRopeStrength[i])){
-            print("Warning: In input csv, non-Null input in MaxRopeStrength field under GearReductions")
+            message("Warning: In input csv, non-Null input in MaxRopeStrength field under GearReductions")
           }
           if(!is.na(SC_GearReductions$BuoylineDevice[i])){
-            print("Warning: In input csv, non-Null input in BuoylineDevice field under GearReductions")
+            message("Warning: In input csv, non-Null input in BuoylineDevice field under GearReductions")
           }
           if(!is.na(SC_GearReductions$RopelessDevice[i])){
-            print("Warning: In input csv, non-Null input in RopelessDevice field under GearReductions")
+            message("Warning: In input csv, non-Null input in RopelessDevice field under GearReductions")
           }
           if(!is.na(SC_GearReductions$GearCap[i])){
-            print("Warning: In input csv, non-Null input in GearCap field under GearReductions")
+            message("Warning: In input csv, non-Null input in GearCap field under GearReductions")
           }
           if(!is.na(SC_GearReductions$MaxGearSnglLn[i])){
-            print("Warning: In input csv, non-Null input in MaxGearSnglLn field under GearReductions")
+            message("Warning: In input csv, non-Null input in MaxGearSnglLn field under GearReductions")
           }
           ###            
           if(is.na(SC_GearReductions$Percentage[i])){
-            print("Error: In input csv, Null value in required field Percentage field under GearReductions"); ScenarioInputPass=FALSE
+            message("Error: In input csv, Null value in required field Percentage field under GearReductions"); ScenarioInputPass=FALSE
           }
         }
         SC_GearReductions=SC_GearReductions[ ,c("Action", "LMA", "State", "StatArea", "Shapefile", "Months","Percentage")]
@@ -779,34 +779,34 @@ DecisionTool=function(
         for(i in 1:nrow(SC_GearCaps)){
           
           if(!is.na(SC_GearCaps$Fishery[i])){
-            print("Warning: In input csv, non-Null input in Fishery field under GearCaps")
+            message("Warning: In input csv, non-Null input in Fishery field under GearCaps")
           }
           
           if(!is.na(SC_GearCaps$Percentage[i])){
-            print("Warning: In input csv, non-Null input in Percentage field under GearCaps")
+            message("Warning: In input csv, non-Null input in Percentage field under GearCaps")
           }
           if(!is.na(SC_GearCaps$StringRegulation[i])){
-            print("Warning: In input csv, non-Null input in StringRegulation field under GearCaps")
+            message("Warning: In input csv, non-Null input in StringRegulation field under GearCaps")
           }
           if(!is.na(SC_GearCaps$StringLen[i])){
-            print("Warning: In input csv, non-Null input in StringRegulation field under GearCaps")
+            message("Warning: In input csv, non-Null input in StringRegulation field under GearCaps")
           }
           if(!is.na(SC_GearCaps$MaxRopeStrength[i])){
-            print("Warning: In input csv, non-Null input in MaxRopeStrength field under GearCaps")
+            message("Warning: In input csv, non-Null input in MaxRopeStrength field under GearCaps")
           }
           if(!is.na(SC_GearCaps$BuoylineDevice[i])){
-            print("Warning: In input csv, non-Null input in BuoylineDevice field under GearCaps")
+            message("Warning: In input csv, non-Null input in BuoylineDevice field under GearCaps")
           }
           if(!is.na(SC_GearCaps$RopelessDevice[i])){
-            print("Warning: In input csv, non-Null input in RopelessDevice field under GearCaps")
+            message("Warning: In input csv, non-Null input in RopelessDevice field under GearCaps")
           }
           
           if(!is.na(SC_GearCaps$MaxGearSnglLn[i])){
-            print("Warning: In input csv, non-Null input in MaxGearSnglLn field under GearCaps")
+            message("Warning: In input csv, non-Null input in MaxGearSnglLn field under GearCaps")
           }
           ###            
           if(is.na(SC_GearCaps$GearCap[i])){
-            print("Error: In input csv, Null value in required field GearCap under action SC_GearCaps"); ScenarioInputPass=FALSE
+            message("Error: In input csv, Null value in required field GearCap under action SC_GearCaps"); ScenarioInputPass=FALSE
           }
         }
         SC_GearCaps=SC_GearCaps[ ,c("Action", "LMA", "State", "StatArea", "Shapefile", "Months","GearCap")]
@@ -815,7 +815,7 @@ DecisionTool=function(
       SC_MaxRopeStrength=ScenarioInputs[ScenarioInputs$Action=="MaxRopeStrength", ];
       if(nrow(SC_MaxRopeStrength)>0){
         if(CoOccurrence){ ## V2.2.8 catch for CoOccurrence run with MaxRopeStrength
-          print("Warning: Running a CoOccurrence run while modifying MaxRopeStrength")
+          message("Warning: Running a CoOccurrence run while modifying MaxRopeStrength")
           SC_MaxRopeStrength$MaxRopeStrength=1
         } else {
           for(i in 1:nrow(SC_MaxRopeStrength)){
@@ -825,8 +825,8 @@ DecisionTool=function(
               AdjustedMaxRopeStrength=AvailableMaxRopeStrength[ ## find and replace with closest available value
                 which(abs(SC_MaxRopeStrength$MaxRopeStrength[i]-AvailableMaxRopeStrength)==
                         min(abs(SC_MaxRopeStrength$MaxRopeStrength[i]-AvailableMaxRopeStrength)))][1]
-              print("Warning: Scenario MaxRopeStrength value not matched with available Rope Threat Model")
-              print(paste0("Replacing input value of ", 
+              message("Warning: Scenario MaxRopeStrength value not matched with available Rope Threat Model")
+              message(paste0("Replacing input value of ", 
                            SC_MaxRopeStrength$MaxRopeStrength[i], 
                            " with best matching value of ",
                            AdjustedMaxRopeStrength))
@@ -840,34 +840,34 @@ DecisionTool=function(
         for(i in 1:nrow(SC_MaxRopeStrength)){
           
           if(!is.na(SC_MaxRopeStrength$Fishery[i])){
-            print("Warning: In input csv, non-Null input in Fishery field under MaxRopeStrength")
+            message("Warning: In input csv, non-Null input in Fishery field under MaxRopeStrength")
           }
           
           # if(!is.na(SC_MaxRopeStrength$Percentage[i])){ ## V2.1.7
-          #   print("Warning: In input csv, non-Null input in Percentage field under MaxRopeStrength")
+          #   message("Warning: In input csv, non-Null input in Percentage field under MaxRopeStrength")
           # }
           if(!is.na(SC_MaxRopeStrength$StringRegulation[i])){
-            print("Warning: In input csv, non-Null input in StringRegulation field under MaxRopeStrength")
+            message("Warning: In input csv, non-Null input in StringRegulation field under MaxRopeStrength")
           }
           if(!is.na(SC_MaxRopeStrength$StringLen[i])){
-            print("Warning: In input csv, non-Null input in StringRegulation field under MaxRopeStrength")
+            message("Warning: In input csv, non-Null input in StringRegulation field under MaxRopeStrength")
           }
           
           if(!is.na(SC_MaxRopeStrength$BuoylineDevice[i])){
-            print("Warning: In input csv, non-Null input in BuoylineDevice field under MaxRopeStrength")
+            message("Warning: In input csv, non-Null input in BuoylineDevice field under MaxRopeStrength")
           }
           if(!is.na(SC_MaxRopeStrength$RopelessDevice[i])){
-            print("Warning: In input csv, non-Null input in RopelessDevice field under MaxRopeStrength")
+            message("Warning: In input csv, non-Null input in RopelessDevice field under MaxRopeStrength")
           }
           if(!is.na(SC_MaxRopeStrength$GearCap[i])){
-            print("Warning: In input csv, non-Null input in GearCap field under MaxRopeStrength")
+            message("Warning: In input csv, non-Null input in GearCap field under MaxRopeStrength")
           }
           if(!is.na(SC_MaxRopeStrength$MaxGearSnglLn[i])){
-            print("Warning: In input csv, non-Null input in MaxGearSnglLn field under MaxRopeStrength")
+            message("Warning: In input csv, non-Null input in MaxGearSnglLn field under MaxRopeStrength")
           }
           ###            
           if(is.na(SC_MaxRopeStrength$MaxRopeStrength[i])){
-            print("Error: In input csv, Null value in required field MaxRopeStrength field under MaxRopeStrength"); ScenarioInputPass=FALSE
+            message("Error: In input csv, Null value in required field MaxRopeStrength field under MaxRopeStrength"); ScenarioInputPass=FALSE
           }
         }
         SC_MaxRopeStrength=SC_MaxRopeStrength[ ,c("Action", "LMA", "State", "StatArea", "Shapefile", "Months", "Percentage", "MaxRopeStrength")]
@@ -877,32 +877,32 @@ DecisionTool=function(
       if(nrow(SC_StringLength)>0){
         for(i in 1:nrow(SC_StringLength)){
           if(!is.na(SC_StringLength$Fishery[i])){
-            print("Warning: In input csv, non-Null input in Fishery field under StringLength")
+            message("Warning: In input csv, non-Null input in Fishery field under StringLength")
           }
           if(!is.na(SC_StringLength$Percentage[i])){
-            print("Warning: In input csv, non-Null input in Percentage field under StringLength")
+            message("Warning: In input csv, non-Null input in Percentage field under StringLength")
           }
           if(!is.na(SC_StringLength$MaxRopeStrength[i])){
-            print("Warning: In input csv, non-Null input in MaxRopeStrength field under StringLength")
+            message("Warning: In input csv, non-Null input in MaxRopeStrength field under StringLength")
           }
           if(!is.na(SC_StringLength$BuoylineDevice[i])){
-            print("Warning: In input csv, non-Null input in BuoylineDevice field under StringLength")
+            message("Warning: In input csv, non-Null input in BuoylineDevice field under StringLength")
           }
           if(!is.na(SC_StringLength$RopelessDevice[i])){
-            print("Warning: In input csv, non-Null input in RopelessDevice field under StringLength")
+            message("Warning: In input csv, non-Null input in RopelessDevice field under StringLength")
           }
           if(!is.na(SC_StringLength$GearCap[i])){
-            print("Warning: In input csv, non-Null input in GearCap field under StringLength")
+            message("Warning: In input csv, non-Null input in GearCap field under StringLength")
           }
           if(!is.na(SC_StringLength$MaxGearSnglLn[i])){
-            print("Warning: In input csv, non-Null input in MaxGearSnglLn field under StringLength")
+            message("Warning: In input csv, non-Null input in MaxGearSnglLn field under StringLength")
           }
           ###            
           if(is.na(SC_StringLength$StringRegulation[i])){
-            print("Error: In input csv, Null value in required field StringRegulation field under StringLength"); ScenarioInputPass=FALSE
+            message("Error: In input csv, Null value in required field StringRegulation field under StringLength"); ScenarioInputPass=FALSE
           }
           if(is.na(SC_StringLength$StringLen[i])){
-            print("Error: In input csv, Null value in required field StringLen field under StringLength"); ScenarioInputPass=FALSE
+            message("Error: In input csv, Null value in required field StringLen field under StringLength"); ScenarioInputPass=FALSE
           }
         }
         SC_StringLength=SC_StringLength[ ,c("Action", "LMA", "State", "StatArea", "Shapefile", "Months","StringRegulation", "StringLen")]
@@ -912,32 +912,32 @@ DecisionTool=function(
       if(nrow(SC_BuoylineDevice)>0){
         for(i in 1:nrow(SC_BuoylineDevice)){
           if(!is.na(SC_BuoylineDevice$Fishery[i])){
-            print("Warning: In input csv, non-Null input in Fishery field under BuoylineDevice")
+            message("Warning: In input csv, non-Null input in Fishery field under BuoylineDevice")
           }
           if(!is.na(SC_BuoylineDevice$Percentage[i])){
-            print("Warning: In input csv, non-Null input in Percentage field under BuoylineDevice")
+            message("Warning: In input csv, non-Null input in Percentage field under BuoylineDevice")
           }
           if(!is.na(SC_BuoylineDevice$StringRegulation[i])){
-            print("Warning: In input csv, non-Null input in StringRegulation field under BuoylineDevice")
+            message("Warning: In input csv, non-Null input in StringRegulation field under BuoylineDevice")
           }
           if(!is.na(SC_BuoylineDevice$StringLen[i])){
-            print("Warning: In input csv, non-Null input in StringRegulation field under BuoylineDevice")
+            message("Warning: In input csv, non-Null input in StringRegulation field under BuoylineDevice")
           }
           if(!is.na(SC_BuoylineDevice$MaxRopeStrength[i])){
-            print("Warning: In input csv, non-Null input in MaxRopeStrength field under BuoylineDevice")
+            message("Warning: In input csv, non-Null input in MaxRopeStrength field under BuoylineDevice")
           }
           if(!is.na(SC_BuoylineDevice$RopelessDevice[i])){
-            print("Warning: In input csv, non-Null input in RopelessDevice field under BuoylineDevice")
+            message("Warning: In input csv, non-Null input in RopelessDevice field under BuoylineDevice")
           }
           if(!is.na(SC_BuoylineDevice$GearCap[i])){
-            print("Warning: In input csv, non-Null input in GearCap field under BuoylineDevice")
+            message("Warning: In input csv, non-Null input in GearCap field under BuoylineDevice")
           }
           if(!is.na(SC_BuoylineDevice$MaxGearSnglLn[i])){
-            print("Warning: In input csv, non-Null input in MaxGearSnglLn field under BuoylineDevice")
+            message("Warning: In input csv, non-Null input in MaxGearSnglLn field under BuoylineDevice")
           }
           ###            
           if(is.na(SC_BuoylineDevice$BuoylineDevice[i])){
-            print("Error: In input csv, Null value in required field BuoylineDevice field under BuoylineDevice"); ScenarioInputPass=FALSE
+            message("Error: In input csv, Null value in required field BuoylineDevice field under BuoylineDevice"); ScenarioInputPass=FALSE
           }
         }
         SC_BuoylineDevice=SC_BuoylineDevice[ ,c("Action", "LMA", "State", "StatArea", "Shapefile", "Months","BuoylineDevice")]
@@ -947,32 +947,32 @@ DecisionTool=function(
       if(nrow(SC_RopelessDevice)>0){
         for(i in 1:nrow(SC_RopelessDevice)){
           if(!is.na(SC_RopelessDevice$Fishery[i])){
-            print("Warning: In input csv, non-Null input in Fishery field under RopelessDevice")
+            message("Warning: In input csv, non-Null input in Fishery field under RopelessDevice")
           }
           if(!is.na(SC_RopelessDevice$Percentage[i])){
-            print("Warning: In input csv, non-Null input in Percentage field under RopelessDevice")
+            message("Warning: In input csv, non-Null input in Percentage field under RopelessDevice")
           }
           if(!is.na(SC_RopelessDevice$StringRegulation[i])){
-            print("Warning: In input csv, non-Null input in StringRegulation field under RopelessDevice")
+            message("Warning: In input csv, non-Null input in StringRegulation field under RopelessDevice")
           }
           if(!is.na(SC_RopelessDevice$StringLen[i])){
-            print("Warning: In input csv, non-Null input in StringRegulation field under RopelessDevice")
+            message("Warning: In input csv, non-Null input in StringRegulation field under RopelessDevice")
           }
           if(!is.na(SC_RopelessDevice$MaxRopeStrength[i])){
-            print("Warning: In input csv, non-Null input in MaxRopeStrength field under RopelessDevice")
+            message("Warning: In input csv, non-Null input in MaxRopeStrength field under RopelessDevice")
           }
           if(!is.na(SC_RopelessDevice$BuoylineDevice[i])){
-            print("Warning: In input csv, non-Null input in BuoylineDevice field under RopelessDevice")
+            message("Warning: In input csv, non-Null input in BuoylineDevice field under RopelessDevice")
           }
           if(!is.na(SC_RopelessDevice$GearCap[i])){
-            print("Warning: In input csv, non-Null input in GearCap field under RopelessDevice")
+            message("Warning: In input csv, non-Null input in GearCap field under RopelessDevice")
           }
           if(!is.na(SC_RopelessDevice$MaxGearSnglLn[i])){
-            print("Warning: In input csv, non-Null input in MaxGearSnglLn field under RopelessDevice")
+            message("Warning: In input csv, non-Null input in MaxGearSnglLn field under RopelessDevice")
           }
           ###            
           if(is.na(SC_RopelessDevice$RopelessDevice[i])){
-            print("Error: In input csv, Null value in required field RopelessDevice field under RopelessDevice"); ScenarioInputPass=FALSE
+            message("Error: In input csv, Null value in required field RopelessDevice field under RopelessDevice"); ScenarioInputPass=FALSE
           }
         }
         SC_RopelessDevice=SC_RopelessDevice[ ,c("Action", "LMA", "State", "StatArea", "Shapefile", "Months","RopelessDevice")]
@@ -982,38 +982,38 @@ DecisionTool=function(
       if(nrow(SC_MaxGearWSingleLine)>0){
         for(i in 1:nrow(SC_MaxGearWSingleLine)){
           if(!is.na(SC_MaxGearWSingleLine$Fishery[i])){
-            print("Warning: In input csv, non-Null input in Fishery field under MaxGearWSingleLine")
+            message("Warning: In input csv, non-Null input in Fishery field under MaxGearWSingleLine")
           }
           if(!is.na(SC_MaxGearWSingleLine$Percentage[i])){
-            print("Warning: In input csv, non-Null input in Percentage field under MaxGearWSingleLine")
+            message("Warning: In input csv, non-Null input in Percentage field under MaxGearWSingleLine")
           }
           if(!is.na(SC_MaxGearWSingleLine$StringRegulation[i])){
-            print("Warning: In input csv, non-Null input in StringRegulation field under MaxGearWSingleLine")
+            message("Warning: In input csv, non-Null input in StringRegulation field under MaxGearWSingleLine")
           }
           if(!is.na(SC_MaxGearWSingleLine$StringLen[i])){
-            print("Warning: In input csv, non-Null input in StringRegulation field under MaxGearWSingleLine")
+            message("Warning: In input csv, non-Null input in StringRegulation field under MaxGearWSingleLine")
           }
           if(!is.na(SC_MaxGearWSingleLine$MaxRopeStrength[i])){
-            print("Warning: In input csv, non-Null input in MaxRopeStrength field under MaxGearWSingleLine")
+            message("Warning: In input csv, non-Null input in MaxRopeStrength field under MaxGearWSingleLine")
           }
           if(!is.na(SC_MaxGearWSingleLine$BuoylineDevice[i])){
-            print("Warning: In input csv, non-Null input in BuoylineDevice field under MaxGearWSingleLine")
+            message("Warning: In input csv, non-Null input in BuoylineDevice field under MaxGearWSingleLine")
           }
           if(!is.na(SC_MaxGearWSingleLine$RopelessDevice[i])){
-            print("Warning: In input csv, non-Null input in RopelessDevice field under MaxGearWSingleLine")
+            message("Warning: In input csv, non-Null input in RopelessDevice field under MaxGearWSingleLine")
           }
           if(!is.na(SC_MaxGearWSingleLine$GearCap[i])){
-            print("Warning: In input csv, non-Null input in GearCap field under MaxGearWSingleLine")
+            message("Warning: In input csv, non-Null input in GearCap field under MaxGearWSingleLine")
           }
           if(is.na(SC_MaxGearWSingleLine$MaxGearSnglLn[i])){
-            print("Error: In input csv, Null value in required field MaxGearSnglLn field under MaxGearWSingleLine"); ScenarioInputPass=FALSE
+            message("Error: In input csv, Null value in required field MaxGearSnglLn field under MaxGearWSingleLine"); ScenarioInputPass=FALSE
           }
         }
         SC_MaxGearWSingleLine=SC_MaxGearWSingleLine[ ,c("Action", "LMA", "State", "StatArea", "Shapefile", "Months","MaxGearSnglLn")]
       }
       
       if(ScenarioInputPass==FALSE){
-        print("Error in inputs csv file. Ending model run"); return(ScenarioInputPass)
+        message("Error in inputs csv file. Ending model run"); return(ScenarioInputPass)
       }
       
     } ## fold reading individual actions and error checks
@@ -1127,7 +1127,7 @@ DecisionTool=function(
     GearMap$SourceZone=as.character(GearMap$SourceZone);
     
     if(nrow(GearMap)==0){ 
-      print("Error: Spatial Constraints removed all data"); return(ConstraintsSpatial);
+      message("Error: Spatial Constraints removed all data"); return(ConstraintsSpatial);
     } 
     WhaleDensityModel=merge(WhaleDensityModel, data.frame(MapRef_HR)[ ,c("Index_HR", "Index_LR")]); 
     
@@ -1153,7 +1153,7 @@ DecisionTool=function(
           maxPixels=aggregate(nPix~Index_LR, nPixels, max); summary(maxPixels); ## find locations that represent the majority of the attribute values
           nPixels=merge(nPixels, maxPixels); summary(nPixels); ## match the retained attribute back to the location
           if(max(aggregate(nPix~Index_LR, nPixels, length)$nPix)>1){ ## if a location is evenly split between two attributes... fix someday
-            print("Warning: Unable to find definite assignments for all locations in LowRes grid. Assigned to lowest appropriate value.");
+            message("Warning: Unable to find definite assignments for all locations in LowRes grid. Assigned to lowest appropriate value.");
             nPixels=aggregate(NextColumn~Index_LR+nPix, nPixels, min); ## v3.0.6
           }
           names(nPixels)=c("Index_LR", "nPix", AttI) ## rename
@@ -1180,7 +1180,7 @@ DecisionTool=function(
       }else{
       MapRef_ForMapping= MapRef 
       UpdateIndex=FALSE
-      print("Warning: High resolution maps were chosen on a low resolution model run.")
+      message("Warning: High resolution maps were chosen on a low resolution model run.")
       }##ends if else loop
         
     
@@ -1226,7 +1226,7 @@ DecisionTool=function(
   ##########################################################--
   ## 1.0 Gear Reductions
   if(Fold) {
-    print("Starting Stage 1. Applying any Gear reductions")
+    message("Starting Stage 1. Applying any Gear reductions")
     ## Gear are further removed due to Gear reductions (management option #2). 
     ## Easiest assumption is that Gear will be removed proportionally over the entire management area.
     Stage1d=GearMap[GearMap$GearFished>0, ]; 
@@ -1284,7 +1284,7 @@ DecisionTool=function(
           #summary(MapRef_HR_I)
           ## applicable months
           if(!is.na(SC_GearReductions$Months[i])){
-            print("Really, you're performing a seasonal Gear reduction?")
+            message("Really, you're performing a seasonal Gear reduction?")
             Months=as.numeric(strsplit(SC_GearReductions$Months[i], ",")[[1]])
           } else {Months=1:12}
           
@@ -1355,7 +1355,7 @@ DecisionTool=function(
   ##########################################################--
   ## 2.0 Gear Caps
   if(Fold) {
-    print("Starting Stage 2. Applying any Gear caps")
+    message("Starting Stage 2. Applying any Gear caps")
     ## Gear are further removed due to implementation of Gear caps (management option #3?). 
     ## Cumulative number of Gear fished by region are cropped to new Gear cap and change in area-under-curve is applied to number of Gear fished.
     Stage2d=Stage1d
@@ -1411,7 +1411,7 @@ DecisionTool=function(
           #summary(MapRef_HR_I)
           ## applicable months
           if(!is.na(SC_GearCaps$Months[i])){
-            print("Interesting, you're applying a seasonal Gear cap?")
+            message("Interesting, you're applying a seasonal Gear cap?")
             Months=as.numeric(strsplit(SC_GearCaps$Months[i], ",")[[1]])
           } else {Months=1:12}
           
@@ -1426,7 +1426,7 @@ DecisionTool=function(
           coordinates(spCapped)=c("x", "y"); proj4string(spCapped)=Proj4
           spCapped$RegionID=over(spCapped, GearCap_Regions)$RegionID; 
           if(any(is.na(spCapped$RegionID))){ ## error check
-            print(paste("Error; Gear cap", i, "extends beyond the area where latent effort has been characterized")); return(SC_GearCaps[i, ]);
+            message(paste("Error; Gear cap", i, "extends beyond the area where latent effort has been characterized")); return(SC_GearCaps[i, ]);
           }
           
           ## get affected regions as merge of regionID and months
@@ -1445,7 +1445,7 @@ DecisionTool=function(
                            Totals[ ,c("RegionID", "Month", "Reduction")]); #summary(AffectedPx)
           Capped=merge(Capped, AffectedPx, all.x=TRUE); #summary(Capped)
           if(any(is.na(Capped$Reduction))){
-            print(paste("Error; Gear cap", i, "; some regions not matched to a reduction")); return(Capped);
+            message(paste("Error; Gear cap", i, "; some regions not matched to a reduction")); return(Capped);
           }
           ## calculate Gear removed
           GearRemoved_I=Capped; GearRemoved_I$GearRemoved=with(GearRemoved_I, GearFished * Reduction); #summary(GearRemoved_I)
@@ -1563,7 +1563,7 @@ DecisionTool=function(
   ##########################################################--
   ## 3.0 Closures
   if(Fold) {
-    print("Starting Stage 3. Applying any closures");
+    message("Starting Stage 3. Applying any closures");
     ## Gear are removed or redistributed based on the locations and timing of seasonal closures 
     ## (management option #1 above). 
     ## We would need to consider a rough approach to how to model redistributing Gear. 
@@ -1604,7 +1604,7 @@ DecisionTool=function(
         ## First find set of Gear that will be moved #######################################################--
         ## this is done across all closures here to ensure Gear don't get moved into another proposed closure
         for(i in 1:nrow(SC_Closures)){ ## for each closure
-          print(paste("Defining Closure", i))
+          message(paste("Defining Closure", i))
           
           ## define the area affected by the closure
           ClosureShape=SC_Closures$Shapefile[i]; ClosureShape ## get name of shapefile
@@ -1616,8 +1616,8 @@ DecisionTool=function(
           
           ## break model if no indices within polygon V3.0.1
           if(nrow(ClosedPx)==0){
-            print(paste0("Error: No Reference Points Found Within Closure Shape ", ClosureShape));
-            print("Check Location of Polygon or Consider Running at Higher Resolution");
+            message(paste0("Error: No Reference Points Found Within Closure Shape ", ClosureShape));
+            message("Check Location of Polygon or Consider Running at Higher Resolution");
             break()
           };
           
@@ -1679,7 +1679,7 @@ DecisionTool=function(
         
         ## For each Fishery / SourceZone, redistribute Gear #######################################--
         for(i in 1:nrow(SC_Closures)){ ## loop across closures (I)
-          print(paste("Analyzing closure", i, "of", (nrow(SC_Closures)), ";", SC_Closures$Shapefile[i]))
+          message(paste("Analyzing closure", i, "of", (nrow(SC_Closures)), ";", SC_Closures$Shapefile[i]))
           RedistributedGearI=BlankDF;
           
           ## define the area affected by the closure
@@ -1716,7 +1716,7 @@ DecisionTool=function(
             
             ## for each combination of fishery, and zone
             for(j in 1:nrow(MovedFleetZoneList)){ ## loop across fishery and zone (J) 
-              print(paste("Relocating Gear for Closure", ClosureShape, "Subarea", j, "of", nrow(MovedFleetZoneList), sep=" "))
+              message(paste("Relocating Gear for Closure", ClosureShape, "Subarea", j, "of", nrow(MovedFleetZoneList), sep=" "))
               
               ## Identify lists of Gear to move by fleet and zone
               MovedFleetZoneListJ=MovedFleetZoneList[j, ] ## start with fishery, zone
@@ -1745,7 +1745,7 @@ DecisionTool=function(
               
               ## redistribute Gear if possible
               if(nrow(AdjacentGearJ)==0 | sum(AdjacentGearJ$GearFished)==0){ ## if no adjacent Gear
-                print(paste("Note: No adjacent habitat found for", 
+                message(paste("Note: No adjacent habitat found for", 
                             MovedFleetZoneListJ$Fishery, "fishery in ",
                             MovedFleetZoneListJ$SourceZone, "source area. Removing Gear due to closure"))
                 
@@ -1797,7 +1797,7 @@ DecisionTool=function(
                 UnqSources=unique(spMovedGearSetJ$Index); length(UnqSources); ## get list of pixel indices (source locations)
                 
                 for(k in UnqSources){ ## loop across Source locations (K)
-                  # print(paste("Redistributing Gear for ", k))
+                  # message(paste("Redistributing Gear for ", k))
                   # k=UnqSources[1] ## for debugging
                   MovedGearSetJK=MovedGearSetJ[MovedGearSetJ$Index==k, ] ## Gear to be moved in this iteration
                   spSourceK=spMovedGearSetJ[spMovedGearSetJ$Index==k , ] ## location where Gear are coming from
@@ -1847,7 +1847,7 @@ DecisionTool=function(
                   ## compile results
                   RedistributedGearJ=rbind(RedistributedGearJ, AdjacentGearJK)
                   
-                  # print(dim(RedistributedGearJ))
+                  # message(dim(RedistributedGearJ))
                 } ## end loop across source location (K)
                 
                 ## clean up redundancy
@@ -1883,7 +1883,7 @@ DecisionTool=function(
         sum(UnmovedGear$GearFished); EndGear ## how many Gear you ended with
       
       if(abs(StartGear-EndGear)/StartGear>0.05) {
-        print("Error; Greater than 5% of Gear unaccounted for in redistribution around closures; Ending Scenario Run")
+        message("Error; Greater than 5% of Gear unaccounted for in redistribution around closures; Ending Scenario Run")
         return()
       }
       
@@ -1912,7 +1912,7 @@ DecisionTool=function(
         
         ##############################################################################--
         if(nrow(RemovedGear)==0) {
-          print("No Gear removals associated with closures; No Gear removal maps produced")
+          message("No Gear removals associated with closures; No Gear removal maps produced")
         } else {
           
           OutputMapCall=OutputMap(         
@@ -2005,7 +2005,7 @@ DecisionTool=function(
   ###################################################################--
   ## 4.0 Convert Gear to Strings
   if(Fold) { 
-    print("Starting Stage 4. Converting Gear to Strings")
+    message("Starting Stage 4. Converting Gear to Strings")
     
     ## V2.1.8 hack to track original String length during Stringing when safe to assume fishermen will not change endline strength
     ##  Added a GearPerString_Applied field, capture original String length, and use this to link to Line Strength model
@@ -2037,7 +2037,7 @@ DecisionTool=function(
       Stage4d$GearPerString_Applied=round(Stage4d$GearPerString) ## V2.1.8
       
       if(length(which(is.na(Stage4d$StringProportion)))>0 | length(which(is.na(Stage4d$StringUnitCost)))>1){
-        print("Error: Some Gear not matched to String configurations. Error in Stage4d");
+        message("Error: Some Gear not matched to String configurations. Error in Stage4d");
         return(Stage4d)
       }
       
@@ -2104,7 +2104,7 @@ DecisionTool=function(
         ## implement String length regulations ###############################################################--
         if(nrow(SC_StringLength)>0){ ## loop through String length changes 
           for(i in 1:nrow(SC_StringLength)){
-            print(paste("Reallocating String lengths for ", i, " of ", nrow(SC_StringLength), " scenarios", sep=""))
+            message(paste("Reallocating String lengths for ", i, " of ", nrow(SC_StringLength), " scenarios", sep=""))
             
             ## constrain spatially
             MapRef_CrI=MapRef;
@@ -2255,7 +2255,7 @@ DecisionTool=function(
         Stage4s$StringUnitCost[is.na(Stage4s$StringUnitCost) &
                                 Stage4s$GearFished==0]=1
         if(length(which(is.na(Stage4s$StringProportion)))>0 | length(which(is.na(Stage4s$StringUnitCost)))>1){
-          print("Error: Some Gear not matched to String configurations. Error in Stage4s");
+          message("Error: Some Gear not matched to String configurations. Error in Stage4s");
           return(Stage4s)
         }
         
@@ -2372,7 +2372,7 @@ DecisionTool=function(
   ###################################################################--
   ## 5.0 Convert Strings to vertical Lines
   if(Fold) { 
-    print("Starting Stage 5. Calculating Vertical Lines from Strings")
+    message("Starting Stage 5. Calculating Vertical Lines from Strings")
     ## Strings are converted to vertical lines based on String length. 
     ## Expected to be two vertical lines per String for all offshore areas 
     ## but may be different for inshore areas with shorter Strings.
@@ -2389,7 +2389,7 @@ DecisionTool=function(
     Stage5d$EndlinesPerString[
       Stage5d$GearPerString <= Stage5d$GearPerStringWithOneEndline]=1 ##V2.2.0
     
-    if(any(is.na(Stage5d$EndlinesPerString))){ print("Error in Stage5d: Some String lengths not matched to endlines"); return(Stage5d)}
+    if(any(is.na(Stage5d$EndlinesPerString))){ message("Error in Stage5d: Some String lengths not matched to endlines"); return(Stage5d)}
     
     Stage5d$NumVerticalLines=Stage5d$StringsAtLength * Stage5d$EndlinesPerString
     ### summary(Stage5d)
@@ -2433,7 +2433,7 @@ DecisionTool=function(
       Stage5s$EndlinesPerString=2 ##V2.2.0
       Stage5s$EndlinesPerString[Stage5s$GearPerString <= Stage5s$GearPerStringWithOneEndline]=1 ##V2.2.0
       
-      if(any(is.na(Stage5s$EndlinesPerString))){ print("Error in Stage5s: Some String lengths not matched to endlines"); return(Stage5s)}
+      if(any(is.na(Stage5s$EndlinesPerString))){ message("Error in Stage5s: Some String lengths not matched to endlines"); return(Stage5s)}
       
       ## apply rule for Strings with singe lines ############################################################--
       if(nrow(SC_MaxGearWSingleLine)>0){
@@ -2491,7 +2491,7 @@ DecisionTool=function(
       ############################### Ropeless Scenarios################################################################--
       if(nrow(SC_RopelessDevice)>0){
         for(i in 1:nrow(SC_RopelessDevice)){
-          print(paste("Applying ropeless devices for ", i, " of ", nrow(SC_RopelessDevice), " scenarios", sep=""))
+          message(paste("Applying ropeless devices for ", i, " of ", nrow(SC_RopelessDevice), " scenarios", sep=""))
           
           ## constrain spatially
           MapRef_CrI=MapRef;
@@ -2558,7 +2558,7 @@ DecisionTool=function(
           }
           AffectedPx_Check=aggregate(Affected~Index+Month, AffectedPx, length);
           if(max(AffectedPx_Check$Affected>1)) {
-            print("Error, Ropeless Device applied multiple times to same location and month")
+            message("Error, Ropeless Device applied multiple times to same location and month")
             return(AffectedPx)
           }
           
@@ -2633,7 +2633,7 @@ DecisionTool=function(
   ####################################################################--
   ## 6.0 Characterize Vertical Line Strengths
   if(Fold) {
-    print("Starting Stage 6. Characterizing Vertical Line Strengths")
+    message("Starting Stage 6. Characterizing Vertical Line Strengths")
     ## A distribution of line Strengths for vertical lines is characterized 
     ## based on observed relationships with String length and further modified based on management options.
     Stage6d=Stage5d[Stage5d$NumVerticalLines>0.001, ]; dim(Stage6d)
@@ -2641,7 +2641,7 @@ DecisionTool=function(
     MaxModel=max(LineStrengthMod$GearPerString_Applied); ## v3.0.6 truncate string lengths to domain of model
     MaxObserved=max(Stage6d$GearPerString_Applied);
     if(MaxObserved>MaxModel){
-      print(paste("Warning: Observed max string lengths of", 
+      message(paste("Warning: Observed max string lengths of", 
             MaxObserved, 
             "exceed maximum modeled string lengths of", MaxModel, "and will be truncated")
       )
@@ -2651,7 +2651,7 @@ DecisionTool=function(
     # Stage6d[is.na(Stage6d$RopeStrength), ];
     
     if(any(is.na(Stage6d$RopeStrength))){ ## if there are any String lengths that don't match an endline
-      print("Error: Some Strings lengths not matched to rope diameters.  Error in Stage6d");
+      message("Error: Some Strings lengths not matched to rope diameters.  Error in Stage6d");
       return(Stage6d)
     }
     
@@ -2704,7 +2704,7 @@ DecisionTool=function(
       MaxModel=max(LineStrengthMod$GearPerString_Applied); ## v3.0.6 truncate string lengths to domain of model
       MaxObserved=max(Stage6s$GearPerString_Applied);
       if(MaxObserved>MaxModel){
-        print(paste("Warning: Observed max string lengths of", 
+        message(paste("Warning: Observed max string lengths of", 
                     MaxObserved, 
                     "exceed maximum modeled string lengths of", MaxModel, "and will be truncated")
         )
@@ -2714,7 +2714,7 @@ DecisionTool=function(
       Stage6s=merge(Stage6s, LineStrengthMod, all.x=TRUE); #summary(Stage6s)
       
       if(length(which(is.na(Stage6s$RopeStrength)))>0){ ## if there are any String lengths that don't match an endline
-        print("Error: Some Strings lengths not matched to line diameters.  Error in Stage6s");
+        message("Error: Some Strings lengths not matched to line diameters.  Error in Stage6s");
         return(Stage6s)
       }
       
@@ -2744,7 +2744,7 @@ DecisionTool=function(
   ## but it is appropriate to include this now in the model framework.
   ## this includes 
   if(Fold) { ## fold line strength management 
-    print("Starting Stage 7. Applying any management measures to line diameters")
+    message("Starting Stage 7. Applying any management measures to line diameters")
     
     # if(nrow(Stage6d)==
     #    nrow(unique(Stage6d[ ,c("Index", "Index_LR", "Month", "RopeStrength", "GearPerString")]))){
@@ -2769,10 +2769,10 @@ DecisionTool=function(
       if(nrow(SC_MaxRopeStrength)>0){
         # names(SC_MaxRopeStrength)=c("Action", "LMA", "State", "StatArea", "Shapefile", "Months", "Rope");
         # SC_MaxRopeStrength=merge(SC_MaxRopeStrength, LineConversion, all.x=TRUE)
-        # if(any(is.na(SC_MaxRopeStrength$Rope))){ print("Error in Stage7 SC_MaxRopeStrength: Some Scenario rope diameters not matched to ropes"); return(Stage7s)}
+        # if(any(is.na(SC_MaxRopeStrength$Rope))){ message("Error in Stage7 SC_MaxRopeStrength: Some Scenario rope diameters not matched to ropes"); return(Stage7s)}
         
         for(i in 1:nrow(SC_MaxRopeStrength)){
-          print(paste("Applying changes to vertical lines for ", i, " of ", nrow(SC_MaxRopeStrength), " scenarios", sep=""))
+          message(paste("Applying changes to vertical lines for ", i, " of ", nrow(SC_MaxRopeStrength), " scenarios", sep=""))
           
           ## constrain spatially
           MapRef_CrI=MapRef;
@@ -2827,8 +2827,8 @@ DecisionTool=function(
                                TotalLines); summary(TotalLines);
               TotalLines$Prop=TotalLines$NumLines/sum(TotalLines$NumLines)
               TotalLines$DepthWt=with(TotalLines, Depth*Prop);
-              print(SC_MaxRopeStrength[i, ])
-              print(
+              message(SC_MaxRopeStrength[i, ])
+              message(
                 paste("MeanAffectedLineDepth = ", format(sum(TotalLines$DepthWt), digits=4))
               )
               summary(TotalLines);
@@ -2852,7 +2852,7 @@ DecisionTool=function(
             pLostLines=abs(LostLines)/sum(Stage7s$NumVerticalLinesAtStrength) ## proportion of lines lost
             
             if(pLostLines > 0.001) { ## if discrepancy is >0.1% break
-              print("Error: Records lost in Stage7 splitting Unaffected and Affected")
+              message("Error: Records lost in Stage7 splitting Unaffected and Affected")
               Output=list(Stage7s, UnAvailableLines, AvailableLines, AffectedLines, UnAffectedLines);
               names(Output)=c("Stage7s", "UnAvailableLines", "AvailableLines", "AffectedLines", "UnAffectedLines")
               return(Output)
@@ -2863,7 +2863,7 @@ DecisionTool=function(
             
           } ## end !CalculateAffectedLineDepth
           } else { ## no lines affected by MaxRopeStrength
-            print(paste(
+            message(paste(
               "Warning: No rope strengths modified by MaxRopeStrength", 
               SC_MaxRopeStrength$MaxRopeStrength[i]
             )) ## V2.2.9
@@ -2888,7 +2888,7 @@ DecisionTool=function(
       if(nrow(SC_BuoylineDevice)>0){
         
         for(i in 1:nrow(SC_BuoylineDevice)){
-          print(paste("Applying changes to vertical lines devices for ", i, " of ", nrow(SC_BuoylineDevice), " scenarios", sep=""))
+          message(paste("Applying changes to vertical lines devices for ", i, " of ", nrow(SC_BuoylineDevice), " scenarios", sep=""))
           
           ## constrain spatially
           MapRef_CrI=MapRef;
@@ -2924,7 +2924,7 @@ DecisionTool=function(
                                   Stage7s$Month %in% SC_BuoylineDeviceMonthsI, ]; dim(AffectedGear)
           
           if(nrow(Stage7s)!= (nrow(UnAffectedGear) + nrow(AffectedGear)) ) {
-            print("Error: Records lost in Stage7 splitting Unaffected and Affected")
+            message("Error: Records lost in Stage7 splitting Unaffected and Affected")
             return()
           }
           
@@ -3067,7 +3067,7 @@ DecisionTool=function(
   #################################################################--
   ## 8.0 Merge line diameters with Threat
   if(Fold) {
-    print("Starting Stage 8. Calculating gear configuration threat")
+    message("Starting Stage 8. Calculating gear configuration threat")
     ## Line diameters are converted to Threat based on a model to be developed, possibly by polling the TRT.
     Stage8d=aggregate(NumVerticalLinesAtStrength~Index+Index_LR+Month+RopeStrength,
                       Stage7d, sum); 
@@ -3081,7 +3081,7 @@ DecisionTool=function(
     Stage8d=merge(Stage8d, ModRopeThreat, all.x=TRUE); 
     
     if(any(is.na(Stage8d$Threat))>0) { 
-      print("Error, Some RopeStrengths not matched to Rope Threats in Stage8d");
+      message("Error, Some RopeStrengths not matched to Rope Threats in Stage8d");
       return(Stage8d);
       break();
     }
@@ -3089,7 +3089,7 @@ DecisionTool=function(
     Stage8d$ThreatScore=with(Stage8d, NumVerticalLinesAtStrength * Threat); 
     Stage8d$Scenario="Default"
     
-    print("Stage8 Default Calculations Completed")
+    message("Stage8 Default Calculations Completed")
     ### summary(Stage8d)
     if(PrintDefaultMaps){
       ## do mean threat for median, total threat for median and co-occurrence
@@ -3174,7 +3174,7 @@ DecisionTool=function(
       
     } ## stage 8 default maps
     
-    print("Stage8 Default Maps Completed")
+    message("Stage8 Default Maps Completed")
     
     ########################## Stage 8 Scenario ##################################--
     if(TestScenario){
@@ -3196,7 +3196,7 @@ DecisionTool=function(
       Stage8s=merge(Stage8s, ModRopeThreat, all.x=TRUE)
       
       if(any(is.na(Stage8s$Threat))>0) { 
-        print("Error, Some RopeStrengths not matched to Rope Threats in Stage8s");
+        message("Error, Some RopeStrengths not matched to Rope Threats in Stage8s");
         return(Stage8d);
         break();
       }
@@ -3206,7 +3206,7 @@ DecisionTool=function(
       ### summary(Stage8s)
       Stage8s$Scenario="Scenario"
       
-      print("Stage8 Scenario Calculations Completed")
+      message("Stage8 Scenario Calculations Completed")
       
       if(PrintScenarioMaps){
         ############# mean Threat #############################--
@@ -3295,7 +3295,7 @@ DecisionTool=function(
       }
       
     }
-    print("Stage8 Scenario Maps Completed; Building Threat Distribution Plots")
+    message("Stage8 Scenario Maps Completed; Building Threat Distribution Plots")
     
     ############# Mean Threat Scores for Output ################################--
     #summary(Stage8d)
@@ -3426,7 +3426,7 @@ DecisionTool=function(
   #############################################################--
   ## 9. Calculate Risk
   if(Fold) {
-    print("Starting Stage 9. Calculating composite risk values")
+    message("Starting Stage 9. Calculating composite risk values")
     ## Risk is calculated as the product of Threat and whale presence.
     WhaleModel=aggregate(WhaleDensity~Month+Index+Index_LR, WhaleDensityModel, mean) ## aggregate to 10Nm
     names(WhaleModel)=c("Month", "Index", "Index_LR", "WhaleDensity")
@@ -3479,14 +3479,14 @@ DecisionTool=function(
     Stage9d=merge(Stage9d, WhaleModel, all.x=TRUE); 
     ### summary(Stage9d)
     if(length(which(is.na(Stage9d$WhaleDensity)))>0){
-      print(
+      message(
         paste("Warning: ", 
               length(which(is.na(Stage9d$WhaleDensity))), 
               " of ", 
               nrow(Stage9d), 
               " records in Stage9d do not have co-located Whale Habitat values", sep="")
       )
-      print( "   Some mismatches may expected with whale models that lack coverage of inshore habitats")
+      message( "   Some mismatches may expected with whale models that lack coverage of inshore habitats")
     }
     Stage9d$WhaleDensity[is.na(Stage9d$WhaleDensity)]=0
     # Stage9d$WhaleDensity[is.na(Stage9d$WhaleDensity)]=0
@@ -3550,13 +3550,13 @@ DecisionTool=function(
       Stage9s=aggregate(ThreatScore~Index+Index_LR+ThreatMod+Month, Stage8s, sum); ###updated code for V1.6.2
       Stage9s=merge(Stage9s, WhaleModel, all.x=TRUE); 
       if(length(which(is.na(Stage9s$WhaleDensity)))>0){
-        print(
+        message(
           paste("Warning: ", 
                 length(which(is.na(Stage9s$WhaleDensity))), 
                 " of ", 
                 nrow(Stage9s), 
                 " records in Stage9s do not have co-located Whale Habitat values.", sep=""))
-        print( "   Some mismatches are expected with the default Duke_v8 whale model if inshore habitats are included")
+        message( "   Some mismatches are expected with the default Duke_v8 whale model if inshore habitats are included")
       }
       
       ### summary(Stage9s)
@@ -3765,11 +3765,11 @@ DecisionTool=function(
   
   
   if(Fold) { ## writing output 
-    print("Writing output")
+    message("Writing output")
     
     ################################### Write output #################################--
     if(PrintTables){
-      print("Writing Tables")
+      message("Writing Tables")
       
       pdf(file=paste(OutputDir, "_Tables.pdf", sep=""),
           width=15, height=8.5, paper="special")
@@ -3883,7 +3883,7 @@ DecisionTool=function(
     }  ## print tables
     
     if(WriteMapSources){
-      print("Writing Map Sources")
+      message("Writing Map Sources")
       if(PrintDefaultMaps){
         if(CoOccurrence){
           save(
@@ -4038,7 +4038,7 @@ DecisionTool=function(
     } ## end WriteMapSources 
     
     if(WriteOutputCsv) {
-      print("Writing Output to .csv")
+      message("Writing Output to .csv")
       
       write.csv(x=OutputData_Wide,
                 file=paste(OutputDir, "_OutputData.csv", sep=""),
@@ -4046,7 +4046,7 @@ DecisionTool=function(
     }  
     
     if(WriteDetailedOutput){
-      print("Writing Extended Output")
+      message("Writing Extended Output")
       if(TestScenario){
         save(Stage1d, Stage1s,
              Stage2d, Stage2s,
@@ -4076,7 +4076,7 @@ DecisionTool=function(
     
     ################################### Write maps #################################--
     if(PrintDefaultMaps){
-      print("Writing Default Maps")
+      message("Writing Default Maps")
       
       pdf(file=paste(OutputDir, "_DefaultFigures.pdf", sep=""),
           width=11,height=9.5,paper="special")
@@ -4172,7 +4172,7 @@ DecisionTool=function(
     } ## print default maps
     
     if(TestScenario & PrintScenarioMaps){
-      print("Writing Scenario Maps")
+      message("Writing Scenario Maps")
       
       pdf(file=paste(OutputDir, "_ScenarioFigures.pdf", sep=""),
           width=11,height=9.5,paper="special")
@@ -4273,7 +4273,7 @@ DecisionTool=function(
     } ## print threat model uncertainty
     
     if(exists("map3sRedistributedGearDensity")) {
-      print("Writing Gear Redistribution Maps")
+      message("Writing Gear Redistribution Maps")
       
       pdf(file=paste(OutputDir, "_GearRedistributionFigures.pdf", sep=""),
           width=11,height=9.5,paper="special")
@@ -4308,7 +4308,7 @@ DecisionTool=function(
     
   } ## writing output 
     
-    print(paste0("Model run completed. Runtime ", ## V2.3.2
+    message(paste0("Model run completed. Runtime ", ## V2.3.2
                 round((as.numeric(Sys.time() - as.numeric(StartTime)))/60,2), " minutes"
                 )  )
     

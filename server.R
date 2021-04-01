@@ -33,7 +33,7 @@ function(input, output, session) {
     #hideGroup(c("SouthShoreAreas","StatAreas","Coast-3nm","3-12nm","12nm-EEZ","Lobster Management Areas","Maine Zones"))
       hideGroup(c("Coast-3nm","3-12nm","12nm-EEZ","StatAreas"))
     })
-   
+  outputOptions(output, "help_map", suspendWhenHidden = FALSE) 
 ##### MODEL INPUT SECTION
   observeEvent(input$update_list,{
   # get existing scenarios for listing as scenaerio inputs
@@ -161,7 +161,7 @@ function(input, output, session) {
       tryCatch({
       r.dir <- here::here("R")
       source(file.path(r.dir,"run_decisiontool.R"))
-      source(paste0(here::here(),"/function_DecisionSupportTool_V3.0.6.R"))
+      source(paste0(here::here(),"/function_DecisionSupportTool_V3.0.7.R"))
       
         print('About to run decision tool function.')
         run_decisiontool(HD=here::here(),

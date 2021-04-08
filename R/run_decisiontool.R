@@ -30,6 +30,7 @@ run_decisiontool <- function(HD=HD,InputSpreadsheetName="ScenarioTemplate_V3.0.1
     UpdateEndlineStrengths=FALSE, ## Option to not recalculate endline strengths when changing trawl lengths as a result of a trawling up action
     RopeStrengthResolution=500, ## binning for rope strength, minimum of 100, higher values lose resolution but run faster
     ThreatBounds=FALSE, ## calculate upper and lower threat bounds
+    CalculateAffectedLineDepth=FALSE, ## <<<<<<<<<<<<<<<<<<<<<<<<<<<Use Model Run to calculate line-weighted depths of affected gear?
     
     ############### Output settings ############################--
     PrintTables=TRUE, ## print pdf tables of results

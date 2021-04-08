@@ -177,13 +177,13 @@ DecisionTool=function(
   
   if(Fold) { ## basic startup 
     
-    library(grid)
-    library(gtable)
-    library(gridExtra)
-    library(maptools)
-    library(rgdal)
-    library(geosphere);
-    library(lattice);
+    library(grid, quietly=TRUE)
+    library(gtable, quietly=TRUE)
+    library(gridExtra, quietly=TRUE)
+    library(maptools, quietly=TRUE)
+    library(rgdal, quietly=TRUE)
+    library(geosphere, quietly=TRUE);
+    library(lattice, quietly=TRUE);
     
     spRef_UTM_19="+proj=utm +zone=19 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
     spRef_DD="+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs"

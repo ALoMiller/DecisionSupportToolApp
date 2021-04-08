@@ -1,7 +1,7 @@
-library(shinydashboard)
-library(rhandsontable)
-library(leaflet)
-library(dplyr)
+library(shinydashboard, quietly=TRUE)
+library(rhandsontable, quietly=TRUE)
+library(leaflet, quietly=TRUE)
+library(dplyr, quietly=TRUE)
 
 #Source helper functions
 HD="/net/shiny1/amiller/DST"
@@ -102,7 +102,36 @@ ui <- dashboardPage(
       
       tabItem(tabName = "visualize_areas",
               fluidPage(
-                shinydashboard::box(width = NULL, solidHeader = TRUE, status = 'primary', leafletOutput('help_map',width="100%",height="80vh"))
+                shinydashboard::box(width = NULL, solidHeader = TRUE, status = 'primary', 
+                                    leafletOutput('help_map',width="100%",height="80vh"),
+                                    tags$style("
+                                                #controls {
+                                                  background-color: white;
+                                                  opacity: 0.7;
+                                                }
+                                                #controls:hover{
+                                                  opacity: 1;
+                                                }
+                                                       "),
+                                    absolutePanel(id = "controls", class = "panel panel-default",
+                                                  top = 85, left = 330, fixed=TRUE,
+                                                  draggable = TRUE, 
+                                                  height = "auto",
+                                                  width = 300, 
+                                                  #tags$i(h6("Test Panel")),
+                                                  fluidPage(
+                                                    #tags$b(h4("Management Areas")),
+                                                    checkboxInput(input="zero", "Coast-3nm", value=F),
+                                                    checkboxInput(input="three", "3-12nm", value=F),
+                                                    checkboxInput(input="twelve", "12nm-EEZ", value=F),
+                                                    checkboxInput(inputId='stat',label="Statistical Areas",value = F),
+                                                    checkboxInput(input="lma", "Lobster Management Areas", value=F),
+                                                    checkboxInput(input="medmr", "Maine DMR Zones", value=F),
+                                                    checkboxInput(inputId='ma_ra',label="Massachusetts Restricted Areas",value = F),
+                                                    checkboxInput(inputId='gsc',label="Great South Channel Restricted Area",value = F)
+                                                  )
+                                                  
+                                    ))
               )
       ),
       tabItem(tabName = "view_help",
@@ -119,32 +148,91 @@ server <- function(input, output, session) {
     leaflet() %>%
       setView(lng = -68.73742, lat = 42.31386, zoom = 6) %>%
       addProviderTiles(providers$Esri.OceanBasemap) %>%
-      addScaleBar(position = 'bottomright', options = scaleBarOptions(maxWidth = 250)) %>%
-      
-      addPolygons(group = "StatAreas" ,data = StatAreas , stroke = TRUE, color = '#5a5a5a',
-                  opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
-      addPolygons(group = "Coast-3nm" ,data = zero2three , stroke = TRUE, color = '#5a5a5a',
-                  opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
-      addPolygons(group = "3-12nm" ,data = three2twelve , stroke = TRUE, color = '#5a5a5a',
-                  opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
-      addPolygons(group = "12nm-EEZ" ,data = twelve2EEZ , stroke = TRUE, color = '#5a5a5a',
-                  opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
-      # addPolygons(group = "Maine Zones" ,data = MaineA , stroke = TRUE, color = '#5a5a5a',
-      #             opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
-      # addPolygons(group = "Lobster Management Areas" ,data = LMAs , stroke = TRUE, color = '#5a5a5a',
-      #             opacity = 1.0, weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
-      addLabelOnlyMarkers(
-        group = "StatAreas",data = coords,lng = ~Long,
-        lat = ~Lat, label = ~as.character(StatAreas$Id),
-        labelOptions = labelOptions(noHide = T, textOnly = T)) %>%
-      addLayersControl(
-        #overlayGroups = c(,"3-12nm","12nm-EEZ","SouthShoreAreas","StatAreas","Lobster Management Areas","Maine Zones"),
-        overlayGroups = c("Coast-3nm","3-12nm","12nm-EEZ","StatAreas"),
-        options = layersControlOptions(collapsed = FALSE)) %>%
-      #hideGroup(c("SouthShoreAreas","StatAreas","Coast-3nm","3-12nm","12nm-EEZ","Lobster Management Areas","Maine Zones"))
-      hideGroup(c("Coast-3nm","3-12nm","12nm-EEZ","StatAreas"))
+      addScaleBar(position = 'bottomright', options = scaleBarOptions(maxWidth = 250))
   })
   
+  observeEvent(input$ma_ra, {
+    if(input$ma_ra == T) {
+      leafletProxy("help_map") %>% clearGroup(group = "mass_ra")  %>%
+        addPolygons(group = "mass_ra" ,data = MASS_RA ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
+        addPolygons(group = "mass_ra" ,data = MASS_RANE ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
+    } else {
+      leafletProxy("help_map") %>% clearGroup(group = "mass_ra")
+    }
+  })
+  observeEvent(input$gsc, {
+    if(input$gsc == T) {
+      leafletProxy("help_map") %>% clearGroup(group = "gsc")  %>%
+        addPolygons(group = "gsc" ,data = GSC_Gillnet ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
+        addPolygons(group = "gsc" ,data = GSC_Trap ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
+        addPolygons(group = "gsc" ,data = GSC_Sliver ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) 
+    } else {
+      leafletProxy("help_map") %>% clearGroup(group = "gsc")
+    }
+  }) 
+  observeEvent(input$zero, {
+    if(input$zero == T) {
+      leafletProxy("help_map") %>% clearGroup(group = "zero3")  %>%
+        addPolygons(group = "zero3" ,data = zero2three ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
+    } else {
+      leafletProxy("help_map") %>% clearGroup(group = "zero3")
+    }
+  }) 
+  observeEvent(input$three, {
+    if(input$three == T) {
+      leafletProxy("help_map") %>% clearGroup(group = "three12")  %>%
+        addPolygons(group = "three12" ,data = three2twelve ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
+    } else {
+      leafletProxy("help_map") %>% clearGroup(group = "three12")
+    }
+  }) 
+  observeEvent(input$twelve, {
+    if(input$twelve == T) {
+      leafletProxy("help_map") %>% clearGroup(group = "twelveEEZ")  %>%
+        addPolygons(group = "twelveEEZ" ,data = twelve2EEZ ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
+    } else {
+      leafletProxy("help_map") %>% clearGroup(group = "twelveEEZ")
+    }
+  }) 
+  observeEvent(input$lma, {
+    if(input$lma == T) {
+      leafletProxy("help_map") %>% clearGroup(group = "lma")  %>%
+        addPolygons(group = "lmar" ,data = LMAs ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
+    } else {
+      leafletProxy("help_map") %>% clearGroup(group = "lma")
+    }
+  }) 
+  observeEvent(input$medmr, {
+    if(input$medmr == T) {
+      leafletProxy("help_map") %>% clearGroup(group = "me_dmr")  %>%
+        addPolygons(group = "me_dmr" ,data = MaineDMR ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
+    } else {
+      leafletProxy("help_map") %>% clearGroup(group = "me_dmr")
+    }
+  }) 
+  observeEvent(input$stat, {
+    if(input$stat == T) {
+      leafletProxy("help_map") %>% clearGroup(group = "stat_areas")  %>%
+        addPolygons(group = "stat_areas" ,data = StatAreas ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
+        addLabelOnlyMarkers(
+          group = "StatAreas",data = coords,lng = ~Long,
+          lat = ~Lat, label = ~as.character(StatAreas$Id),
+          labelOptions = labelOptions(noHide = T, textOnly = T)) 
+    } else {
+      leafletProxy("help_map") %>% clearGroup(group = "stat_areas")
+    }
+  })
   ##### MODEL INPUT SECTION
   observeEvent(input$update_list,{
     
@@ -235,9 +323,7 @@ server <- function(input, output, session) {
     }
     
   })
-  
-  
-  #Observes the "Run Model" button-------------------------------------------------------------------
+ #Observes the "Run Model" button-------------------------------------------------------------------
   observeEvent(input$run, {
     showNotification(" Running... ",duration=NULL,id="running",type="message")
     
@@ -273,6 +359,7 @@ server <- function(input, output, session) {
         Version="DecisionSupportTool_V3.0.7.R"
         HD="/net/shiny1/amiller/DST"
         source("/net/shiny1/amiller/DST/function_DecisionSupportTool_V3.0.7.R")
+        #source("/net/shiny1/amiller/DST/R/run_decisiontool.R")
         
         print('About to run decision tool function.')
         run_decisiontool(HD=HD,
@@ -357,18 +444,26 @@ server <- function(input, output, session) {
   output$renderedReadme <- renderUI({           
     includeHTML(rmarkdown::render(input = paste0(HD,"/README.md"), "html_document"))
   })
-  # session$onSessionEnded(function() {
-  #   # unlink(isolate(paste0(HD,'/www')),recursive=TRUE) #Removes www folder when Shiny session ends 
-  #   # unlink(isolate(paste0(HD,'/InputSpreadsheets')),recursive=TRUE) #Removes InputSpreadsheets folder when Shiny session ends 
-  #   # unlink(isolate(paste0(HD,'/Scenarios')),recursive=TRUE) #Removes InputSpreadsheets folder when Shiny session ends 
-  #   #Collect files generated during app session to remove when app closes
-  #   template = "ScenarioTemplate_V3.0.1"
-  #   sessionfiles = list.files(paste0(HD,"/Scenarios/"))
-  #   filestoremove = setdiff(sessionfiles,template)
-  #   #removes Scenario folders generated during session
-  #   unlink(isolate(paste0(HD,"/Scenarios/",filestoremove)),recursive=TRUE)
-  #   #removes input spreadsheets generated during session
-  #   unlink(isolate(paste0(HD,"/InputSpreadsheets/",filestoremove,'.csv')),recursive=TRUE)
-  # })
+  session$onSessionEnded(function() {
+    # unlink(isolate(paste0(HD,'/www')),recursive=TRUE) #Removes www folder when Shiny session ends
+    # unlink(isolate(paste0(HD,'/InputSpreadsheets')),recursive=TRUE) #Removes InputSpreadsheets folder when Shiny session ends
+    # unlink(isolate(paste0(HD,'/Scenarios')),recursive=TRUE) #Removes InputSpreadsheets folder when Shiny session ends
+    #Collect files generated during app session to remove when app closes
+    template = "ScenarioTemplate_V3.0.1"
+    sessionfiles = list.files(paste0(HD,"/Scenarios/"))
+    filestoremove = setdiff(sessionfiles,template)
+    #removes Scenario folders generated during session
+    if(filestoremove>0){
+    unlink(isolate(paste0(HD,"/Scenarios/",filestoremove)),recursive=TRUE)
+    }
+    #removes input spreadsheets generated during session
+    unlink(isolate(paste0(HD,"/InputSpreadsheets/",filestoremove,'.csv')),recursive=TRUE)
+    #removes input spreadsheets generated during session
+    unlink(isolate(paste0(HD,"/www/",filestoremove,'_Tables.pdf')),recursive=TRUE)
+    unlink(isolate(paste0(HD,"/www/",filestoremove,'_ScenarioFigures.pdf')),recursive=TRUE)
+    unlink(isolate(paste0(HD,"/www/",filestoremove,'_GearRedistributionFigures.pdf')),recursive=TRUE)
+    unlink(isolate(paste0(HD,"/www/",filestoremove,'_DefaultFigures.pdf')),recursive=TRUE)
+    unlink(isolate(paste0(HD,"/www/",filestoremove,'_ThreatDistributions.pdf')),recursive=TRUE)
+  })
 }
 shinyApp(ui, server)

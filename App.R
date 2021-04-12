@@ -155,9 +155,9 @@ server <- function(input, output, session) {
     if(input$ma_ra == T) {
       leafletProxy("help_map") %>% clearGroup(group = "mass_ra")  %>%
         addPolygons(group = "mass_ra" ,data = MASS_RA ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
-                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3, popup = MASS_RA$AREANAME) %>%
         addPolygons(group = "mass_ra" ,data = MASS_RANE ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
-                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3, popup = MASS_RANE$AREANAME)
     } else {
       leafletProxy("help_map") %>% clearGroup(group = "mass_ra")
     }
@@ -166,11 +166,12 @@ server <- function(input, output, session) {
     if(input$gsc == T) {
       leafletProxy("help_map") %>% clearGroup(group = "gsc")  %>%
         addPolygons(group = "gsc" ,data = GSC_Gillnet ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
-                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
-        addPolygons(group = "gsc" ,data = GSC_Trap ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
-                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3,
+                    popup = "Great South Channel Restricted Trap/Pot/Gillnet Area") %>%
+        # addPolygons(group = "gsc" ,data = GSC_Trap ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
+        #             weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3, popup = GSC_Trap$AREANAME) %>%
         addPolygons(group = "gsc" ,data = GSC_Sliver ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
-                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) 
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3, popup = GSC_Sliver$AREANAME) 
     } else {
       leafletProxy("help_map") %>% clearGroup(group = "gsc")
     }
@@ -206,7 +207,7 @@ server <- function(input, output, session) {
     if(input$lma == T) {
       leafletProxy("help_map") %>% clearGroup(group = "lma")  %>%
         addPolygons(group = "lmar" ,data = LMAs ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
-                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3, popup = LMAs$AREANAME)
     } else {
       leafletProxy("help_map") %>% clearGroup(group = "lma")
     }
@@ -215,7 +216,7 @@ server <- function(input, output, session) {
     if(input$medmr == T) {
       leafletProxy("help_map") %>% clearGroup(group = "me_dmr")  %>%
         addPolygons(group = "me_dmr" ,data = MaineDMR ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
-                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3)
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3, popup = MaineDMR$ZONEID)
     } else {
       leafletProxy("help_map") %>% clearGroup(group = "me_dmr")
     }
@@ -224,7 +225,7 @@ server <- function(input, output, session) {
     if(input$stat == T) {
       leafletProxy("help_map") %>% clearGroup(group = "stat_areas")  %>%
         addPolygons(group = "stat_areas" ,data = StatAreas ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
-                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3) %>%
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3, popup = StatAreas$Id) %>%
         addLabelOnlyMarkers(
           group = "StatAreas",data = coords,lng = ~Long,
           lat = ~Lat, label = ~as.character(StatAreas$Id),
@@ -453,7 +454,7 @@ server <- function(input, output, session) {
     sessionfiles = list.files(paste0(HD,"/Scenarios/"))
     filestoremove = setdiff(sessionfiles,template)
     #removes Scenario folders generated during session
-    if(filestoremove>0){
+    if(length(filestoremove)>0){
     unlink(isolate(paste0(HD,"/Scenarios/",filestoremove)),recursive=TRUE)
     }
     #removes input spreadsheets generated during session

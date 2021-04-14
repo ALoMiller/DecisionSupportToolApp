@@ -1,4 +1,4 @@
-Version="DecisionSupportTool_V3.0.7.R"
+Version="DecisionSupportTool_V3.1.0.R"
 HD=here::here()
 InputSpreadsheetName="test7.csv"
 #GearMapName="GearMap_Lobster_V3.0.0.Rdata"
@@ -11,7 +11,7 @@ TestScenario=FALSE
 CoOccurrence=TRUE
 HighResolution=FALSE
 
-source("/net/shiny1/amiller/DST/function_DecisionSupportTool_V3.0.7.R")
+source("/net/shiny1/amiller/DST/function_DecisionSupportTool_V3.1.0.R")
  
   DecisionTool(
     HomeDir=HD, ## home directory for subdirectories

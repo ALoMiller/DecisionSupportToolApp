@@ -1,12 +1,12 @@
- Version="DecisionSupportTool_V3.0.7.R"
+ Version="DecisionSupportTool_V3.1.0.R"
  HD="/net/shiny1/amiller/DST"
- source("/net/shiny1/amiller/DST/function_DecisionSupportTool_V3.0.7.R")
+ source("/net/shiny1/amiller/DST/function_DecisionSupportTool_V3.1.0.R")
  
 run_decisiontool <- function(HD=HD,InputSpreadsheetName="ScenarioTemplate_V3.0.1.csv",
                              GearMapName="GearMap_Lobster_V3.0.0.Rdata",
                              MapRefDomain="MapRef_3.0.2.Rdata",
                              WhaleMapName="Duke_RightWhaleModel_v10_1018.Rdata",
-                             CommentText="",TestScenario=TRUE,CoOccurrence=FALSE,
+                             CommentText="", TestScenario=TRUE, CoOccurrence=FALSE,
                              HighResolution=FALSE){
   DecisionTool(
     HomeDir=HD, ## home directory for subdirectories

@@ -8,7 +8,7 @@ r.dir <- here::here("R")
 
 source(file.path(r.dir,"read_shapefiles.R"))
 source(file.path(r.dir,"model-specs.R"))
-source("function_DecisionSupportTool_V3.0.7.R")
+source("function_DecisionSupportTool_V3.1.0.R")
 source(file.path(r.dir,"run_decisiontool.R"))
 
 #A zoom effect for boxes
@@ -155,10 +155,10 @@ server <- function(input, output, session) {
   observeEvent(input$ma_ra, {
     if(input$ma_ra == T) {
       leafletProxy("help_map") %>% clearGroup(group = "mass_ra")  %>%
-        addPolygons(group = "mass_ra" ,data = MASS_RA ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
-                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3, popup = MASS_RA$AREANAME) %>%
         addPolygons(group = "mass_ra" ,data = MASS_RANE ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
-                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3, popup = MASS_RANE$AREANAME)
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3, popup = MASS_RANE$AREANAME) %>%
+        addPolygons(group = "mass_ra" ,data = MASS_RA ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
+                    weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3, popup = MASS_RA$AREANAME)
     } else {
       leafletProxy("help_map") %>% clearGroup(group = "mass_ra")
     }
@@ -228,7 +228,7 @@ server <- function(input, output, session) {
         addPolygons(group = "stat_areas" ,data = StatAreas ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
                     weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3, popup = StatAreas$Id) %>%
         addLabelOnlyMarkers(
-          group = "StatAreas",data = coords,lng = ~Long,
+          group = "stat_areas", data = coords, lng = ~Long,
           lat = ~Lat, label = ~as.character(StatAreas$Id),
           labelOptions = labelOptions(noHide = T, textOnly = T)) 
     } else {
@@ -251,8 +251,7 @@ server <- function(input, output, session) {
     switch(input$maprefname,
            "Gillnet or Other Trap/Pot" = selectInput("gearmapname", "Select Gear Map:",
                                                      choices = c("","GearMap_Gillnet_IEC_V3.0.0.Rdata",
-                                                                 "GearMap_OtherTrapPot_IEC_V3.0.0.Rdata","GearMap_NewEnglMultispecies_V3.0.0.Rdata",
-                                                                 "GearMap_Monkfish_V3.0.0.Rdata","DST_BlackSeaBass_Federal_v3.0.0.Rdata")
+                                                                 "GearMap_OtherTrapPot_IEC_V3.0.0.Rdata")
            ),
            "Lobster" = selectInput("gearmapname", "Select Gear Map:",
                                    choices = c("","GearMap_Lobster_V3.0.0.Rdata","GearMap_Lobster_MassRMA_V3.0.0.Rdata")
@@ -362,7 +361,7 @@ server <- function(input, output, session) {
       tryCatch({
         r.dir <- here::here("R")
         source(file.path(r.dir,"run_decisiontool.R"))
-        source(paste0(here::here(),"/function_DecisionSupportTool_V3.0.7.R"))
+        source(paste0(here::here(),"/function_DecisionSupportTool_V3.1.0.R"))
         
         print('About to run decision tool function.')
         run_decisiontool(HD=here::here(),

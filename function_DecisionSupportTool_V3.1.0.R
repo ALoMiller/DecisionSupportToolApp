@@ -18,7 +18,10 @@ DecisionTool=function(
   RelocationCostExp=1, ## RelocationCost=Distance^(RelocationCostExp); higher values cause more 'fencing' lower values spread gear more evenly
   ExpressRedistribution=FALSE,
   UpdateEndlineStrengths=TRUE,
-  RopeStrengthResolution=100,
+  RopeStrengthResolution=500,
+  AutoConstrain=TRUE, ## V3.0.6
+  ThreatBounds=FALSE, ## V3.0.6 do you want to calculate confidence intervals on gear threats?
+  CalculateAffectedLineDepth=FALSE,
 ##outputs
   PrintTables=TRUE,
   PrintDefaultMaps=FALSE,
@@ -36,8 +39,7 @@ DecisionTool=function(
 
   StartTime=Sys.time() ## V2.3.2
   Fold=TRUE ## dummy variable to allow text folding
-  #AggregateStrings=TRUE
-  #ManageMemory=FALSE
+  #AggregateStrings=TRUE; ManageMemory=FALSE; AutoConstrain=TRUE; 
   
   ## Version Notes 
   if(Fold) { ## Version Notes 
@@ -148,8 +150,23 @@ DecisionTool=function(
     
     ## V3.0.2 fixed error in defining UnAffectedTraps in closure scenarios. Affects all scenarios involving multiple closures where the months do not match. 
     
-    ##V3.0.3 Allows user to select high definition maps, allows for summary to be shown in console at end of run
+    ## V3.0.3 Allows user to select high definition maps, allows for summary to be shown in console at end of run
     
+    ## V3.0.4 Fixed error in Stage3s by moving 'map3sGearDensity_PostClosure' etc inside the 'if(TestScenario)
+    ## V3.0.4 Fixed some issues with plotting unneeded maps for co-occurrence runs
+    ## V3.0.4 Commented out section in output that saves (not prints) map objects to save dive space and run time
+    
+    ## V3.0.5 Re-ordered printing of output for efficiency
+    
+    ## V3.0.6 Update for gillnet fishery
+    ## V3.0.6 AutoConstrain
+    ## V3.0.6 implement 'ThreatBounds' to suppress calculation of upper and lower bounds on threat model to improve run time
+    
+    ## V3.0.7 implement 'CalculateAffectedLineDepth' to calculate depths of lines for setting up weak line scenarios
+    
+    ## V3.0.8 error fix assigning maximumGearOnSnglLine
+    
+    ## V3.0.9 splits ScenarioInputs across two sheets if necessary
     
     ## To Do List
     ## Gearcaps for Area 3
@@ -258,7 +275,7 @@ DecisionTool=function(
     } else {
       print("Error: Specified Gear Map not found"); return(paste0(HD, "/Inputs/", GearMapName))
     }
-    names(GearPerStringModel)[names(GearPerStringModel)=="GearPerString"]="GearPerString"
+    # names(GearPerStringModel)[names(GearPerStringModel)=="GearPerString"]="GearPerString"
     
     # GearMap=GearMap_V2.2; rm(GearMap_V2.2, GearMap_V2.2_readMe);
     # GearPerStringModel=GearPerStringModel_V2.2; rm(GearPerStringModel_V2.2);
@@ -346,6 +363,7 @@ DecisionTool=function(
       ThreatString=paste0(HD, "/Inputs/", ThreatModel)
       if(file.exists(ThreatString)){
         load(ThreatString);
+        
         # summary(ModRopeThreat)
         if(!is.na(RopeStrengthResolution)){ ## aggregate rope strength model to specified resolution
           ModRopeThreat$RopeStrength_Agg=
@@ -357,6 +375,8 @@ DecisionTool=function(
           ModRopeThreat=aggregate(cbind(Threat, Threat_Lower, Threat_Upper)~RopeStrength_Agg, ModRopeThreat, mean)
           names(ModRopeThreat)=c("RopeStrength", "Threat", "Threat_Lower", "Threat_Upper")
         }
+        
+        if(!ThreatBounds){ModRopeThreat=ModRopeThreat[ ,c("RopeStrength", "Threat")]} ## V3.0.6 potentially drop upper and lower threat bounds
         
         ModRopeThreat$CoOccurrence=1
         
@@ -422,7 +442,8 @@ DecisionTool=function(
     ShapefileDir=paste(HD, "/InputShapefiles", sep="")
     print("Loading Shapefiles")
     spStatAreas=readOGR(dsn=ShapefileDir, 
-                        layer="StatAreas_DecisionTool",
+                        # layer="StatAreas_DecisionTool",
+                        layer="StatAreas_DST_V3_SmoothCoast", ## v3.0.6
                         verbose=FALSE)
     spStatAreas=spTransform(spStatAreas, Proj4);
     # plot(spStatAreas)
@@ -431,12 +452,12 @@ DecisionTool=function(
     #   labels=as.character(spStatAreas$Id),
     #   cex=0.4)
     
-    spLMAs=readOGR(dsn=ShapefileDir, 
-                   layer="LCMAs_Simple_Bad",
-                   verbose=FALSE)
-    proj4string(spLMAs)=Proj4;
-    #summary(spLMAs)
-    spLMAs=spLMAs[spLMAs$Name %in% c("A1", "A2", "OCC", "A2_3overlap", "A3"), ]
+    # spLMAs=readOGR(dsn=ShapefileDir,  ## V3.0.6
+    #                layer="LCMAs_Simple_Bad",
+    #                verbose=FALSE)
+    # proj4string(spLMAs)=Proj4;
+    # #summary(spLMAs)
+    # spLMAs=spLMAs[spLMAs$Name %in% c("A1", "A2", "OCC", "A2_3overlap", "A3"), ]
     # plot(spLMAs)
     
     # par(mar=c(1,1,1,1))
@@ -456,11 +477,15 @@ DecisionTool=function(
     spCoast_layout1=list("sp.lines", as(Coast, "SpatialLinesDataFrame"), lwd=3, col="white")
     spCoast_layout2=list("sp.lines", as(Coast, "SpatialLinesDataFrame"), lwd=1, col="black")
     
-    spLMA_layout1=list("sp.lines", as(spLMAs, "SpatialLinesDataFrame"), lwd=3, col="white")
-    spLMA_layout2=list("sp.lines", as(spLMAs, "SpatialLinesDataFrame"), lwd=1, col="black")
+    # spLMA_layout1=list("sp.lines", as(spLMAs, "SpatialLinesDataFrame"), lwd=3, col="white") ## V3.0.6
+    # spLMA_layout2=list("sp.lines", as(spLMAs, "SpatialLinesDataFrame"), lwd=1, col="black") ## V3.0.6
     
     spStatAreas_layout1=list("sp.lines", as(spStatAreas, "SpatialLinesDataFrame"), lwd=3, col="white")
     spStatAreas_layout2=list("sp.lines", as(spStatAreas, "SpatialLinesDataFrame"), lwd=1, col="black")
+    
+    # SpLayoutList=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2)  ## V3.0.6
+    SpLayoutList=list(spCoast_layout1, spCoast_layout2, spStatAreas_layout1, spStatAreas_layout2)
+    
   } ## load GIS layers and bathymetry 
   
   OutputData=data.frame(
@@ -513,8 +538,18 @@ DecisionTool=function(
       
       AvailableStates=c("All", "ME", "NH", "MA"); #AvailableStates
       
-      AvailableFisheries=c("All", "NonExempt", "Exempt", "Midshelf_Lobster", "Midshelf_Crab", "Offshore_Lobster",
-                           "Offshore_Crab", "EverythingButExempt"); #AvailableFisheries
+      # AvailableFisheries=c("All", "NonExempt", "Exempt", "Midshelf_Lobster", "Midshelf_Crab", "Offshore_Lobster",
+      #                      "Offshore_Crab", "EverythingButExempt", #AvailableFisheries
+      #                      "GillNet", "BlueCrab", "OtherTrapPot", 
+      #                      "Dogfish",
+      #                      "GB_SNE_CodPollock",
+      #                      "GOM_CodPollock",
+      #                      "GOM_Haddock",
+      #                      "Monkfish",
+      #                      "BlackSeaBass_Fed"
+      # ); #v3.0.6
+
+      AvailableFisheries=unique(GearMap$Fishery); #v3.0.6
       
       AvailableStatAreas=as.character(c(464, 465, 511, 512, 513, 514, 515, 521, 522, 525, 526, 561, 562, 537, 538, 539))
       
@@ -990,7 +1025,22 @@ DecisionTool=function(
   }  ## Scenario.csv
   
   #############################################################--
-
+  ## V3.0.6 moved Fishery constraints ahead of spatial constraints
+  if(Fold) { ## Fishery constraints
+    if(nrow(Constraints_Fishery)>0) {
+      Constraints_Fishery
+      if(Constraints_Fishery$Fishery[1]=="EverythingButExempt"){
+        GearMap=GearMap[!GearMap$Fishery %in% "Exempt", ]; dim(GearMap) ## drop all data outside constraints
+      } else {
+        GearMap=GearMap[GearMap$Fishery %in% Constraints_Fishery$Fishery, ]; dim(GearMap) ## drop all data outside constraints
+      }
+      # table(GearMap$Fishery)
+      ## update spatial domain as needed
+      ## MapRef_HR=MapRef_HR[MapRef_HR$Index_HR %in% unique(GearMap$Index_HR), ] ## dropped for V2.3.0; causing problems with comparing scenarios
+    }
+    
+  } ## Fishery constraints
+  
   ## 0.2 Constrain spatial extent based on user inputs
   if(Fold) { ## fold spatial constraint 
     
@@ -1042,28 +1092,21 @@ DecisionTool=function(
         # summary(MapRef_HR);
         } ## coding fix V2.3.0?
       
-    } 
+    }
+    
+    if(AutoConstrain){ ## V3.0.6
+      GearMapIndices=na.omit(
+        merge(data.frame(MapRef_HR)[ ,c("Index_HR", "StatArea")],
+              data.frame(Index_HR=unique(GearMap$Index_HR[GearMap$GearFished>0]))
+      )); summary(GearMapIndices);
+      MapRef_HR=MapRef_HR[MapRef_HR$StatArea %in% unique(GearMapIndices$StatArea), ]
+    }
     
   } ## Spatial Constraints
   
   # str(MapRef_HR_CrI);
   # str(MapRef_HR_Cr);
   # str(MapRef_HR);
-  
-  if(Fold) {
-    if(nrow(Constraints_Fishery)>0) {
-      Constraints_Fishery
-      if(Constraints_Fishery$Fishery=="EverythingButExempt"){
-        GearMap=GearMap[!GearMap$Fishery %in% "Exempt", ]; dim(GearMap) ## drop all data outside constraints
-      } else {
-        GearMap=GearMap[GearMap$Fishery %in% Constraints_Fishery$Fishery, ]; dim(GearMap) ## drop all data outside constraints
-      }
-      # table(GearMap$Fishery)
-      ## update spatial domain as needed
-      ## MapRef_HR=MapRef_HR[MapRef_HR$Index_HR %in% unique(GearMap$Index_HR), ] ## dropped for V2.3.0; causing problems with comparing scenarios
-    }
-    
-  } ## Fishery constraints
   
   # Bk=GearMap; 
   # GearMap=Bk;
@@ -1073,9 +1116,17 @@ DecisionTool=function(
   
   if(Fold){ ## update spatial domain, save some output V2.2.4
     MapRef_LR=MapRef_LR[MapRef_LR$Index_LR %in%  unique(MapRef_HR$Index_LR), ];
+    MapRef_LR=merge(MapRef_LR, aggregate(Depth~Index_LR, data.frame(MapRef_HR), mean)); ## calculate _LR depths
     # GearMap=merge(GearMap, data.frame(MapRef_HR)[ ,c("Index_HR", "Index_LR", "Region", "Distance", "SourceZone")])
-    GearMap=merge(GearMap, 
-                  data.frame(MapRef_HR)[ ,c("Index_HR", "Index_LR", "Region", "SourceZone")]) ## drop Distance field
+    
+    if(unique(GearMap$Fishery %in% c("GillNet", "BlueCrab", "OtherTrapPot"))){ ##v3.0.6 substitute StatArea for SourceZone in Gillnet, OTP
+      GearMap=merge(GearMap, 
+                    data.frame(MapRef_HR)[ ,c("Index_HR", "Index_LR", "Region", "StatArea")]) ## drop Distance field
+      names(GearMap)[names(GearMap)=="StatArea"]="SourceZone"
+    } else {
+      GearMap=merge(GearMap, 
+                    data.frame(MapRef_HR)[ ,c("Index_HR", "Index_LR", "Region", "SourceZone")]) ## drop Distance field
+    }
     GearMap$SourceZone=as.character(GearMap$SourceZone);
     
     if(nrow(GearMap)==0){ 
@@ -1090,7 +1141,8 @@ DecisionTool=function(
       WhaleDensityModel$Index = WhaleDensityModel$Index_HR
     } else {
       ## to use the _LR grid, we need to pass the location attributes from _HR to _LR after having cropped _HR to the desired extent
-      MapRef=MapRef_LR[ ,c("Index_LR")]; summary(MapRef); 
+      MapRef=MapRef_LR[ ,c("Index_LR", "Depth")]; #summary(MapRef); 
+      # MapRef_Bk=MapRef
       
       ## move referece columns from MapRef_HR to MapRef_LR V2.3.0
       MapRefAttributes=c("LMA", "State", "StatArea") ## list of columns to transfer
@@ -1104,7 +1156,8 @@ DecisionTool=function(
           maxPixels=aggregate(nPix~Index_LR, nPixels, max); summary(maxPixels); ## find locations that represent the majority of the attribute values
           nPixels=merge(nPixels, maxPixels); summary(nPixels); ## match the retained attribute back to the location
           if(max(aggregate(nPix~Index_LR, nPixels, length)$nPix)>1){ ## if a location is evenly split between two attributes... fix someday
-            print("Error: Unable to find unique assignments for LowRes grid. Not sure how to best fix this."); break();
+            print("Warning: Unable to find definite assignments for all locations in LowRes grid. Assigned to lowest appropriate value.");
+            nPixels=aggregate(NextColumn~Index_LR+nPix, nPixels, min); ## v3.0.6
           }
           names(nPixels)=c("Index_LR", "nPix", AttI) ## rename
           MapRef=merge(MapRef, nPixels[ ,c("Index_LR", AttI)], all.x=TRUE) ## append to MapRef
@@ -1167,12 +1220,8 @@ DecisionTool=function(
   
   par(mar=c(1,1,1,1));
   print(plot(MapRef_HR, pch='.', main="Constrained Spatial Domain"))
-  print(plot(spStatAreas, add=TRUE, border="blue"))
-  print(plot(spLMAs, add=TRUE, border="green"))
-  
-  # str(MapRef_HR); 
-  # str(MapRef_LR); 
-  # str(GearMap);
+  print(plot(spStatAreas, add=TRUE, border="green"))
+  # print(plot(spLMAs, add=TRUE, border="green")) ## V3.0.6
   
   ## Filled data frame for future plotting
   PlotDF=expand.grid(Index=unique(data.frame(MapRef_ForMapping)$Index),  ##V3.0.3 change to Mapref_Formapping
@@ -1180,7 +1229,7 @@ DecisionTool=function(
   ##########################################################--
   ## 1.0 Gear Reductions
   if(Fold) {
-    print("1. Applying any Gear reductions")
+    print("Starting Stage 1. Applying any Gear reductions")
     ## Gear are further removed due to Gear reductions (management option #2). 
     ## Easiest assumption is that Gear will be removed proportionally over the entire management area.
     Stage1d=GearMap[GearMap$GearFished>0, ]; 
@@ -1191,7 +1240,7 @@ DecisionTool=function(
        # MapRef=MapRef_LR,
        MapRef=MapRef_ForMapping, 
        #MapRef_BK=MapRef
-          Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+          Sp.Layout=SpLayoutList,
         InputDF=Stage1d,
         UpdateIndex=UpdateIndex,
         VarName="GearFished",
@@ -1257,7 +1306,7 @@ DecisionTool=function(
         OutputMapCall=OutputMap(
           PlotDF=PlotDF,
           MapRef=MapRef_ForMapping,
-          Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+          Sp.Layout=SpLayoutList,
           InputDF=Stage1s,
           UpdateIndex=UpdateIndex,       
           VarName="GearFished",
@@ -1309,7 +1358,7 @@ DecisionTool=function(
   ##########################################################--
   ## 2.0 Gear Caps
   if(Fold) {
-    print("2. Applying any Gear caps")
+    print("Starting Stage 2. Applying any Gear caps")
     ## Gear are further removed due to implementation of Gear caps (management option #3?). 
     ## Cumulative number of Gear fished by region are cropped to new Gear cap and change in area-under-curve is applied to number of Gear fished.
     Stage2d=Stage1d
@@ -1318,7 +1367,7 @@ DecisionTool=function(
       OutputMapCall=OutputMap(         
         PlotDF=PlotDF,         
         MapRef=MapRef_ForMapping,         
-        Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+        Sp.Layout=SpLayoutList,
         InputDF=Stage2d,
         UpdateIndex=UpdateIndex,      
         VarName="GearFished",
@@ -1422,7 +1471,7 @@ DecisionTool=function(
         OutputMapCall=OutputMap(         
           PlotDF=PlotDF,         
           MapRef=MapRef_ForMapping,         
-          Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+          Sp.Layout=SpLayoutList,
           InputDF=Stage2s,
           UpdateIndex=UpdateIndex,         
           VarName="GearFished",
@@ -1445,7 +1494,7 @@ DecisionTool=function(
         OutputMapCall=OutputMap(         
           PlotDF=PlotDF,         
           MapRef=MapRef_ForMapping,         
-          Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+          Sp.Layout=SpLayoutList,
           InputDF=GearRemoved,
           UpdateIndex=UpdateIndex,        
           VarName="GearRemoved",
@@ -1464,7 +1513,7 @@ DecisionTool=function(
         OutputMapCall=OutputMap(         
           PlotDF=PlotDF,         
           MapRef=MapRef_ForMapping,         
-          Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+          Sp.Layout=SpLayoutList,
           InputDF=GearRemoved,
           UpdateIndex=UpdateIndex,       
           VarName="Reduction",
@@ -1517,7 +1566,7 @@ DecisionTool=function(
   ##########################################################--
   ## 3.0 Closures
   if(Fold) {
-    print("3. Applying any closures");
+    print("Starting Stage 3. Applying any closures");
     ## Gear are removed or redistributed based on the locations and timing of seasonal closures 
     ## (management option #1 above). 
     ## We would need to consider a rough approach to how to model redistributing Gear. 
@@ -1849,7 +1898,7 @@ DecisionTool=function(
         OutputMapCall=OutputMap(         
           PlotDF=PlotDF,         
           MapRef=MapRef_ForMapping,         
-          Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+          Sp.Layout=SpLayoutList,
           InputDF=RedistributedGear,
           UpdateIndex=UpdateIndex,        
           VarName="GearFished",
@@ -1872,7 +1921,7 @@ DecisionTool=function(
           OutputMapCall=OutputMap(         
             PlotDF=PlotDF,         
             MapRef=MapRef_ForMapping,         
-            Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+            Sp.Layout=SpLayoutList,
             InputDF=RemovedGear,
             UpdateIndex=UpdateIndex,        
             VarName="GearFished",
@@ -1893,27 +1942,27 @@ DecisionTool=function(
       
     } ## end Gear redistribution
       
+      ###################### Stage3 Scenario ########################################################--
+      OutputMapCall=OutputMap(         
+        PlotDF=PlotDF,         
+        MapRef=MapRef_ForMapping,         
+        Sp.Layout=SpLayoutList,
+        InputDF=Stage3s,
+        UpdateIndex=UpdateIndex,        
+        VarName="GearFished",
+        Plot1_Title="Post-Closure Gear Density - Scenario",
+        PlotLog=TRUE,
+        LogOffset=1,
+        Plot2_Title="Post-Closure Gear Density, Log-Scaled - Scenario"
+      )
+      
+      Stage3s_GearDensity_PostClosure_Px=OutputMapCall$Plot1_Px;
+      map3sGearDensity_PostClosure=OutputMapCall$Map1;
+      Stage3s_GearDensity_PostClosureLog_Px=OutputMapCall$Plot1_Px
+      map3sGearDensity_PostClosureLog=OutputMapCall$Map2
+      
     } ## end TestScenario V3.0.1
     
-    ###################### Stage3 Scenario ########################################################--
-    OutputMapCall=OutputMap(         
-      PlotDF=PlotDF,         
-      MapRef=MapRef_ForMapping,         
-      Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
-      InputDF=Stage3s,
-      UpdateIndex=UpdateIndex,        
-      VarName="GearFished",
-      Plot1_Title="Post-Closure Gear Density - Scenario",
-      PlotLog=TRUE,
-      LogOffset=1,
-      Plot2_Title="Post-Closure Gear Density, Log-Scaled - Scenario"
-    )
-    
-    Stage3s_GearDensity_PostClosure_Px=OutputMapCall$Plot1_Px;
-    map3sGearDensity_PostClosure=OutputMapCall$Map1;
-    Stage3s_GearDensity_PostClosureLog_Px=OutputMapCall$Plot1_Px
-    map3sGearDensity_PostClosureLog=OutputMapCall$Map2
-  
     #########################################################--
     Stage3dOutput=aggregate(GearFished~Month, Stage3d, sum); Stage3dOutput
     Stage3dTotal=aggregate(GearFished~1, Stage3dOutput, sum); Stage3dTotal
@@ -1959,7 +2008,7 @@ DecisionTool=function(
   ###################################################################--
   ## 4.0 Convert Gear to Strings
   if(Fold) { 
-    print("4 Converting Gear to Strings")
+    print("Starting Stage 4. Converting Gear to Strings")
     
     ## V2.1.8 hack to track original String length during Stringing when safe to assume fishermen will not change endline strength
     ##  Added a GearPerString_Applied field, capture original String length, and use this to link to Line Strength model
@@ -2002,9 +2051,15 @@ DecisionTool=function(
       
       if(PrintDefaultMaps){
         ############--
-        Tmp=Stage4d[ ,c("VesselKey", "Month", "Index_LR", "GearPerString", "StringsAtLength")];
-        Tmp2=aggregate(StringsAtLength~Month+Index_LR, Tmp, sum); ###summary(Tmp2)
-        names(Tmp2)=c("Month", "Index_LR", "Totals")
+        if (PrintMapsInHighResolution){  ##new 3.0.3 pulls Index as denoted by high or low res maps
+          Tmp=Stage4d[ ,c("VesselKey", "Month", "Index", "GearPerString", "StringsAtLength")];
+        }else{
+          Tmp=Stage4d[ ,c("VesselKey", "Month", "Index_LR", "GearPerString", "StringsAtLength")];
+          names(Tmp)[names(Tmp)=="Index_LR"]="Index"
+        }
+        Tmp2=aggregate(StringsAtLength~Month+Index, Tmp, sum); ###summary(Tmp2)
+        names(Tmp2)=c("Month", "Index", "Totals")
+        
         Tmp=merge(Tmp, Tmp2); ###summary(Tmp)
         Tmp$Totals[Tmp$Totals==0]=NA
         Tmp$Strings=with(Tmp, GearPerString * StringsAtLength/Totals);
@@ -2014,9 +2069,9 @@ DecisionTool=function(
         OutputMapCall=OutputMap(         
           PlotDF=PlotDF,         
           MapRef=MapRef_ForMapping,         
-          Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+          Sp.Layout=SpLayoutList,
           InputDF=Tmp,
-          UpdateIndex=UpdateIndex,  
+          UpdateIndex=FALSE,  
           VarName="Strings",
           Plot1_Title="Mean String Length (# Pots) - Default",
           PlotLog=FALSE
@@ -2048,11 +2103,13 @@ DecisionTool=function(
                       all.x=TRUE); #summary(Stage4s)
         Stage4s$GearPerString_Applied=round(Stage4s$GearPerString) ## V2.1.8
         
-        
+        #Bk=Stage4s; # Stage4s=Bk;
         ## implement String length regulations ###############################################################--
         if(nrow(SC_StringLength)>0){ ## loop through String length changes 
           for(i in 1:nrow(SC_StringLength)){
-            print(paste("Reallocating String lengths for ", i, " of ", nrow(SC_StringLength), " scenarios", sep=""))
+            # for(i in 1:8){
+            #   #i=9;
+              print(paste("Reallocating String lengths for ", i, " of ", nrow(SC_StringLength), " scenarios", sep=""))
             
             ## constrain spatially
             MapRef_CrI=MapRef;
@@ -2110,14 +2167,21 @@ DecisionTool=function(
               UnChangedGear=AffectedGear[AffectedGear$GearPerString<SC_StringLength$StringLen[i], 
                                            c("Region", "VesselKey", "Month", "Index", "Index_LR", "GearFished", "GearPerString", "GearPerString_Applied",
                                              "StringProportion")] 
-              ChangedGear$Prod=with(ChangedGear, GearPerString * StringProportion); 
-              ChangedGear$GearPerString=SC_StringLength$StringLen[i]
-              ChangedGear=aggregate(Prod~Region+VesselKey+Month+Index+Index_LR+GearFished + GearPerString, 
-                                     ChangedGear, sum); 
-              UnChangedGear$Prod=with(UnChangedGear, GearPerString * StringProportion); UnChangedGear
-              UnChangedGear=UnChangedGear[ ,names(ChangedGear)]; 
+              if(nrow(ChangedGear)>0){## added error catch V3.1.0
+                FinishCalcs=TRUE ## run calcs at end of iteration
+                ChangedGear$Prod=with(ChangedGear, GearPerString * StringProportion); 
+                ChangedGear$GearPerString=SC_StringLength$StringLen[i]
+                ChangedGear=aggregate(Prod~Region+VesselKey+Month+Index+Index_LR+GearFished + GearPerString + GearPerString_Applied, 
+                                      ChangedGear, sum); 
+                UnChangedGear$Prod=with(UnChangedGear, GearPerString * StringProportion); #UnChangedGear
+                UnChangedGear=UnChangedGear[ ,names(ChangedGear)]; 
+                
+                AffectedGear=rbind(ChangedGear, UnChangedGear); 
+              } else {
+                FinishCalcs=FALSE## skip calcs at end of iteration
+                # AffectedGear=UnChangedGear; 
+              }## added error catch V3.1.0
               
-              AffectedGear=rbind(ChangedGear, UnChangedGear); 
             } ## end ifMax 
             
             if(SC_StringLength$StringRegulation[i]=="Min"){
@@ -2132,18 +2196,25 @@ DecisionTool=function(
                                            "StringProportion")] ## Adjust these
               UnChangedGear=AffectedGear[AffectedGear$GearPerString>SC_StringLength$StringLen[i], 
                                            c("Region", "VesselKey", "Month", "Index", "Index_LR", "GearFished", "GearPerString", "GearPerString_Applied",
-                                             "StringProportion")] 
-              ChangedGear$Prod=with(ChangedGear, GearPerString * StringProportion); #summary(ChangedGear)
-              ChangedGear$GearPerString=SC_StringLength$StringLen[i]
-              ChangedGear=aggregate(Prod~Region+VesselKey+Month+Index+Index_LR+GearFished + GearPerString + GearPerString_Applied, 
-                                     ChangedGear, sum); 
-              UnChangedGear$Prod=with(UnChangedGear, GearPerString * StringProportion); UnChangedGear
-              UnChangedGear=UnChangedGear[ ,names(ChangedGear)]; 
-              
-              AffectedGear=rbind(ChangedGear, UnChangedGear); 
+                                             "StringProportion")]
+              if(nrow(ChangedGear)>0){ ## added error catch V3.1.0
+                FinishCalcs=TRUE ## run calcs at end of iteration
+                ChangedGear$Prod=with(ChangedGear, GearPerString * StringProportion); #summary(ChangedGear)
+                ChangedGear$GearPerString=SC_StringLength$StringLen[i]
+                ChangedGear=aggregate(Prod~Region+VesselKey+Month+Index+Index_LR+GearFished + GearPerString + GearPerString_Applied, 
+                                      ChangedGear, sum); 
+                UnChangedGear$Prod=with(UnChangedGear, GearPerString * StringProportion); UnChangedGear
+                UnChangedGear=UnChangedGear[ ,names(ChangedGear)]; 
+                
+                AffectedGear=rbind(ChangedGear, UnChangedGear); 
+              } else {
+                FinishCalcs=FALSE## skip calcs at end of iteration
+                # AffectedGear=UnChangedGear; 
+              }; ## added error catch V3.1.0
             } ## end if Min
             
             if(SC_StringLength$StringRegulation[i]=="Exactly"){
+              FinishCalcs=TRUE ## run calcs at end of iteration V3.1.0
               ChangedGear=AffectedGear
               ChangedGear$Prod=with(ChangedGear, GearPerString * StringProportion); 
               ChangedGear$GearPerString=SC_StringLength$StringLen[i]
@@ -2159,35 +2230,41 @@ DecisionTool=function(
             ## Update String unit costs
             # hist(AffectedGear$GearPerString)
             
-            AffectedGear$Prop1=AffectedGear$GearPerString * AffectedGear$Prod; AffectedGear
-            
-            # Prop1Tot=aggregate(Prop1~Region+VesselKey+Month+Index+Index_LR+Distance+GearFished, AffectedGear, sum); Prop1Tot
-            Prop1Tot=aggregate(Prop1~Region+VesselKey+Month+Index+Index_LR+GearFished, AffectedGear, sum); Prop1Tot
-            names(Prop1Tot)[names(Prop1Tot)=="Prop1"]="Prop1Total"
-            
-            AffectedGear=merge(AffectedGear, Prop1Tot); AffectedGear
-            
-            AffectedGear$StringProportion=with(AffectedGear, Prop1 / Prop1Total) # 5 new proportions
-            AffectedGear$Product=with(AffectedGear, StringProportion * GearPerString)
-            
-            # UnitCost=aggregate(Product~Region+VesselKey+Month+Index+Index_LR+Distance+GearFished, AffectedGear, sum); UnitCost
-            # names(UnitCost)=c("Region", "VesselKey", "Month", "Index", "Index_LR", "Distance", "GearFished", "StringUnitCost");
-            
-            UnitCost=aggregate(Product~Region+VesselKey+Month+Index+Index_LR+GearFished, AffectedGear, sum); UnitCost
-            names(UnitCost)=c("Region", "VesselKey", "Month", "Index", "Index_LR", "GearFished", "StringUnitCost");
-            
-            AffectedGear=merge(AffectedGear, UnitCost); #summary(AffectedGear)
-            
-            # AffectedGear=AffectedGear[ ,c("Region", "VesselKey","Month","Index", "Index_LR", "Distance","GearFished",
-            #                                 "GearPerString", "GearPerString_Applied","StringProportion","StringUnitCost")]; # summary(AffectedGear)
-            AffectedGear=AffectedGear[ ,c("Region", "VesselKey","Month","Index", "Index_LR","GearFished",
+            if(FinishCalcs){ ## if there are records to update, FinishCalcs V3.1.0
+              AffectedGear$Prop1=AffectedGear$GearPerString * AffectedGear$Prod; #AffectedGear
+              
+              # Prop1Tot=aggregate(Prop1~Region+VesselKey+Month+Index+Index_LR+Distance+GearFished, AffectedGear, sum); Prop1Tot
+              Prop1Tot=aggregate(Prop1~Region+VesselKey+Month+Index+Index_LR+GearFished, AffectedGear, sum); # Prop1Tot
+              names(Prop1Tot)[names(Prop1Tot)=="Prop1"]="Prop1Total"
+              
+              AffectedGear=merge(AffectedGear, Prop1Tot); # AffectedGear
+              
+              AffectedGear$StringProportion=with(AffectedGear, Prop1 / Prop1Total) # 5 new proportions
+              AffectedGear$Product=with(AffectedGear, StringProportion * GearPerString)
+              
+              # UnitCost=aggregate(Product~Region+VesselKey+Month+Index+Index_LR+Distance+GearFished, AffectedGear, sum); UnitCost
+              # names(UnitCost)=c("Region", "VesselKey", "Month", "Index", "Index_LR", "Distance", "GearFished", "StringUnitCost");
+              
+              UnitCost=aggregate(Product~Region+VesselKey+Month+Index+Index_LR+GearFished, AffectedGear, sum); UnitCost
+              names(UnitCost)=c("Region", "VesselKey", "Month", "Index", "Index_LR", "GearFished", "StringUnitCost");
+              
+              AffectedGear=merge(AffectedGear, UnitCost); #summary(AffectedGear)
+              
+              # AffectedGear=AffectedGear[ ,c("Region", "VesselKey","Month","Index", "Index_LR", "Distance","GearFished",
+              #                                 "GearPerString", "GearPerString_Applied","StringProportion","StringUnitCost")]; # summary(AffectedGear)
+              AffectedGear=AffectedGear[ ,c("Region", "VesselKey","Month","Index", "Index_LR","GearFished",
                                             "GearPerString", "GearPerString_Applied","StringProportion","StringUnitCost")]; # summary(AffectedGear)
-            
-            # mean(Stage4s$GearPerString)
-            # mean(Stage4s$GearPerString)
-            
-            ## append output within the loop
-            Stage4s=rbind(UnAffectedGear, AffectedGear)
+              
+              # mean(Stage4s$GearPerString)
+              # mean(Stage4s$GearPerString)
+              
+              ## append output within the loop
+              Stage4s=rbind(UnAffectedGear, AffectedGear)
+            } else {
+              ## notify if no gear affected
+              print("Notice: No gear affected by StringLength management action:")
+              print(SC_StringLength[i, ])
+            } ## end if FinishCalcs
             
           } ## end SC_StringLength loop
           
@@ -2232,7 +2309,7 @@ DecisionTool=function(
           OutputMapCall=OutputMap(         
             PlotDF=PlotDF,         
             MapRef=MapRef_ForMapping,         
-            Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+            Sp.Layout=SpLayoutList,
             InputDF=Tmp,
             UpdateIndex=FALSE,  ##Index is automatically updated in code above
             VarName="Strings",
@@ -2320,7 +2397,7 @@ DecisionTool=function(
   ###################################################################--
   ## 5.0 Convert Strings to vertical Lines
   if(Fold) { 
-    print("5 Calculating Vertical Lines from Strings")
+    print("Starting Stage 5. Calculating Vertical Lines from Strings")
     ## Strings are converted to vertical lines based on String length. 
     ## Expected to be two vertical lines per String for all offshore areas 
     ## but may be different for inshore areas with shorter Strings.
@@ -2348,7 +2425,7 @@ DecisionTool=function(
       OutputMapCall=OutputMap(         
         PlotDF=PlotDF,         
         MapRef=MapRef_ForMapping,         
-        Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+        Sp.Layout=SpLayoutList,
         InputDF=Stage5d,
         UpdateIndex=UpdateIndex,      
         VarName="NumVerticalLines",
@@ -2406,14 +2483,16 @@ DecisionTool=function(
             MapRef_CrI = MapRef_CrI[!is.na(over(MapRef_CrI, ShapeI)$ID), ] ## get spatial overlap of shapefile from overlay
           }
           
-          if(exists("MapRef_Cr")){
-            MapRef_Cr=rbind(MapRef_Cr, MapRef_CrI)
-          } else {     MapRef_Cr=MapRef_CrI }
-          # plot(MapRef_Cr)
+          # ## is this used for anything?????
+          # if(exists("MapRef_Cr")){
+          #   MapRef_Cr=rbind(MapRef_Cr, MapRef_CrI)
+          # } else {     MapRef_Cr=MapRef_CrI }
+          # # plot(MapRef_CrI)
           
           ## get months applicable to String scenario
           if(!is.na(SC_MaxGearWSingleLine$Months[i])){
-            MaxGearWSingleLineMonthsI=as.numeric(strsplit(SC_MaxGearWSingleLine$Months[i], ",")[[1]]); MaxGearWSingleLineMonthsI ## get months
+            MaxGearWSingleLineMonthsI=as.numeric(strsplit(SC_MaxGearWSingleLine$Months[i], ",")[[1]]); 
+            # MaxGearWSingleLineMonthsI ## get months
           } else {MaxGearWSingleLineMonthsI=1:12}; ## or use all months
           
           ## find the locations and months impacted
@@ -2426,8 +2505,7 @@ DecisionTool=function(
           Stage5s=merge(Stage5s, AffectedPxI, all.x=TRUE); #summary(Stage5s)
           
           Stage5s$EndlinesPerString[!is.na(Stage5s$Affected) &
-                                     # Stage5s$GearPerStringInt<= SC_MaxGearWSingleLine$MaxGearSnglLn] = 1
-                                     Stage5s$GearPerString<= SC_MaxGearWSingleLine$MaxGearSnglLn] = 1
+                                     Stage5s$GearPerString<= SC_MaxGearWSingleLine$MaxGearSnglLn[i]] = 1 ##V3.0.8 bug fix; added index [i] 
           Stage5s=Stage5s[ ,namesStage5s]; #summary(Stage5s)
           
         } ## end loop for individual scenario
@@ -2522,7 +2600,7 @@ DecisionTool=function(
         OutputMapCall=OutputMap(         
           PlotDF=PlotDF,         
           MapRef=MapRef_ForMapping,         
-          Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+          Sp.Layout=SpLayoutList,
           InputDF=Stage5s,
           UpdateIndex=UpdateIndex,      
           VarName="NumVerticalLines",
@@ -2581,11 +2659,22 @@ DecisionTool=function(
   ####################################################################--
   ## 6.0 Characterize Vertical Line Strengths
   if(Fold) {
-    print("6 Characterizing Vertical Line Strengths")
+    print("Starting Stage 6. Characterizing Vertical Line Strengths")
     ## A distribution of line Strengths for vertical lines is characterized 
     ## based on observed relationships with String length and further modified based on management options.
     Stage6d=Stage5d[Stage5d$NumVerticalLines>0.001, ]; dim(Stage6d)
+    
+    MaxModel=max(LineStrengthMod$GearPerString_Applied); ## v3.0.6 truncate string lengths to domain of model
+    MaxObserved=max(Stage6d$GearPerString_Applied);
+    if(MaxObserved>MaxModel){
+      print(paste("Warning: Observed max string lengths of", 
+            MaxObserved, 
+            "exceed maximum modeled string lengths of", MaxModel, "and will be truncated")
+      )
+      Stage6d$GearPerString_Applied[Stage6d$GearPerString_Applied>MaxModel]=MaxModel
+    }
     Stage6d=merge(Stage6d, LineStrengthMod, all.x=TRUE); #summary(Stage6d)
+    # Stage6d[is.na(Stage6d$RopeStrength), ];
     
     if(any(is.na(Stage6d$RopeStrength))){ ## if there are any String lengths that don't match an endline
       print("Error: Some Strings lengths not matched to rope diameters.  Error in Stage6d");
@@ -2620,7 +2709,7 @@ DecisionTool=function(
       OutputMapCall=OutputMap(         
         PlotDF=PlotDF,         
         MapRef=MapRef_ForMapping,         
-        Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+        Sp.Layout=SpLayoutList,
         InputDF=Tmp,
                     UpdateIndex=FALSE,  ##Index is automatically updated in code above      
         VarName="LineStrength",
@@ -2638,6 +2727,16 @@ DecisionTool=function(
     if(TestScenario){
       
       Stage6s=Stage5s[Stage5s$NumVerticalLines>0.001, ]; dim(Stage6s)
+      MaxModel=max(LineStrengthMod$GearPerString_Applied); ## v3.0.6 truncate string lengths to domain of model
+      MaxObserved=max(Stage6s$GearPerString_Applied);
+      if(MaxObserved>MaxModel){
+        print(paste("Warning: Observed max string lengths of", 
+                    MaxObserved, 
+                    "exceed maximum modeled string lengths of", MaxModel, "and will be truncated")
+        )
+        Stage6s$GearPerString_Applied[Stage6s$GearPerString_Applied>MaxModel]=MaxModel
+      }
+      
       Stage6s=merge(Stage6s, LineStrengthMod, all.x=TRUE); #summary(Stage6s)
       
       if(length(which(is.na(Stage6s$RopeStrength)))>0){ ## if there are any String lengths that don't match an endline
@@ -2671,7 +2770,7 @@ DecisionTool=function(
   ## but it is appropriate to include this now in the model framework.
   ## this includes 
   if(Fold) { ## fold line strength management 
-    print("7 Applying any management measures to line diameters")
+    print("Starting Stage 7. Applying any management measures to line diameters")
     
     # if(nrow(Stage6d)==
     #    nrow(unique(Stage6d[ ,c("Index", "Index_LR", "Month", "RopeStrength", "GearPerString")]))){
@@ -2690,9 +2789,6 @@ DecisionTool=function(
       Stage7s=aggregate(NumVerticalLinesAtStrength~Index+Index_LR+Month+RopeStrength+GearPerString, Stage6s, sum);
       
       # Stage7d$BuoylineDevice=NA
-      
-      dim(Stage7d)
-      
       
       ## Manipulate line strength for management ######################################################--
       
@@ -2748,6 +2844,21 @@ DecisionTool=function(
             ## V2.1.7 split available lines for application of percentage
             ## AffectedLines have the line strength reduction applied to them
             AffectedLines=AvailableLines;
+            
+            ## V3.0.7 option to calculate mean affected line depth #################################################################################
+            if(CalculateAffectedLineDepth){
+              TotalLines=aggregate(NumVerticalLinesAtStrength~Index, AffectedLines, sum); 
+              names(TotalLines)=c("Index", "NumLines"); summary(TotalLines);
+              TotalLines=merge(data.frame(MapRef)[ ,c("Index", "Depth")],
+                               TotalLines); summary(TotalLines);
+              TotalLines$Prop=TotalLines$NumLines/sum(TotalLines$NumLines)
+              TotalLines$DepthWt=with(TotalLines, Depth*Prop);
+              print(SC_MaxRopeStrength[i, ])
+              print(
+                paste("MeanAffectedLineDepth = ", format(sum(TotalLines$DepthWt), digits=4))
+              )
+              summary(TotalLines);
+            } else {
             AffectedLines$RopeStrength=SC_MaxRopeStrength$MaxRopeStrength[i] ## change line strength
             AffectedLines$NumVerticalLinesAtStrength=
               AffectedLines$NumVerticalLinesAtStrength *  SC_MaxRopeStrengthPercentageI## apply percentage
@@ -2776,15 +2887,19 @@ DecisionTool=function(
             
             Stage7s=rbind(UnAvailableLines, AffectedLines, UnAffectedLines);
             
+          } ## end !CalculateAffectedLineDepth
           } else { ## no lines affected by MaxRopeStrength
             print(paste(
               "Warning: No rope strengths modified by MaxRopeStrength", 
               SC_MaxRopeStrength$MaxRopeStrength[i]
-                           )) ## V2.2.9
+            )) ## V2.2.9
             ## no need to update Stage7s
           } ## end catch for non-zero lines affected
           
         } ## end scenario loop
+        if(CalculateAffectedLineDepth){ ## V3.0.7
+          return("Terminating model run");
+        }
       } ## end management actions
       
       
@@ -2872,7 +2987,7 @@ DecisionTool=function(
         OutputMapCall=OutputMap(         
           PlotDF=PlotDF,         
           MapRef=MapRef_ForMapping,         
-          Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+          Sp.Layout=SpLayoutList,
           InputDF=Tmp,
                       UpdateIndex=FALSE,  ##Index is automatically updated in code above      
           VarName="LineStrength",
@@ -2978,7 +3093,7 @@ DecisionTool=function(
   #################################################################--
   ## 8.0 Merge line diameters with Threat
   if(Fold) {
-    print("8 Calculating gear configuration threat")
+    print("Starting Stage 8. Calculating gear configuration threat")
     ## Line diameters are converted to Threat based on a model to be developed, possibly by polling the TRT.
     Stage8d=aggregate(NumVerticalLinesAtStrength~Index+Index_LR+Month+RopeStrength,
                       Stage7d, sum); 
@@ -3000,6 +3115,7 @@ DecisionTool=function(
     Stage8d$ThreatScore=with(Stage8d, NumVerticalLinesAtStrength * Threat); 
     Stage8d$Scenario="Default"
     
+    print("Stage8 Default Calculations Completed")
     ### summary(Stage8d)
     if(PrintDefaultMaps){
       ## do mean threat for median, total threat for median and co-occurrence
@@ -3029,7 +3145,7 @@ DecisionTool=function(
       OutputMapCall=OutputMap(         
         PlotDF=PlotDF,         
         MapRef=MapRef_ForMapping,         
-        Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+        Sp.Layout=SpLayoutList,
         InputDF=Tmp,
                     UpdateIndex=FALSE,  ##Index is automatically updated in code above       
         VarName="MeanThreat",
@@ -3067,7 +3183,7 @@ DecisionTool=function(
       OutputMapCall=OutputMap(         
         PlotDF=PlotDF,         
         MapRef=MapRef_ForMapping,         
-        Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+        Sp.Layout=SpLayoutList,
         InputDF=Tmp,
                     UpdateIndex=FALSE,  ##Index is automatically updated in code above      
         VarName="TotalThreat",
@@ -3083,6 +3199,8 @@ DecisionTool=function(
       map8dTotalThreatLog=OutputMapCall$Map2
       
     } ## stage 8 default maps
+    
+    print("Stage8 Default Maps Completed")
     
     ########################## Stage 8 Scenario ##################################--
     if(TestScenario){
@@ -3114,6 +3232,8 @@ DecisionTool=function(
       ### summary(Stage8s)
       Stage8s$Scenario="Scenario"
       
+      print("Stage8 Scenario Calculations Completed")
+      
       if(PrintScenarioMaps){
         ############# mean Threat #############################--
           if(CoOccurrence){
@@ -3140,7 +3260,7 @@ DecisionTool=function(
         OutputMapCall=OutputMap(         
           PlotDF=PlotDF,         
           MapRef=MapRef_ForMapping,         
-          Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+          Sp.Layout=SpLayoutList,
           InputDF=Tmp,
                       UpdateIndex=FALSE,  ##Index is automatically updated in code above       
           VarName="MeanThreat",
@@ -3177,7 +3297,7 @@ DecisionTool=function(
         OutputMapCall=OutputMap(         
           PlotDF=PlotDF,         
           MapRef=MapRef_ForMapping,         
-          Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+          Sp.Layout=SpLayoutList,
           InputDF=Tmp,
                       UpdateIndex=FALSE,  ##Index is automatically updated in code above       
           VarName="TotalThreat",
@@ -3193,7 +3313,7 @@ DecisionTool=function(
         map8sTotalThreatLog=OutputMapCall$Map2
         
       } ## Stage 8 scenario maps
-      
+
       if(ManageMemory){
         CleanUp(InputList=c("OutputMapCall","Months","Tmp","Tmp2",
                             "Stage8d_MeanThreat_Px","Stage8d_TotalThreat_Px","Stage8d_TotalThreatLog_Px", "ModRopeThreat"))
@@ -3201,6 +3321,7 @@ DecisionTool=function(
       }
       
     }
+    print("Stage8 Scenario Maps Completed; Building Threat Distribution Plots")
     
     ############# Mean Threat Scores for Output ################################--
     #summary(Stage8d)
@@ -3263,28 +3384,29 @@ DecisionTool=function(
                auto.key=list(text=c("Default", "Scenario"), x=0.95, y=.90, corner=c(1,1), lwd=3, type="l")
         ); #plotThreatDistributions
       
-      plotThreatDistributions_Lower=  
-        xyplot(Count~ThreatBin|factor(Month), groups=Scenario, 
-               data=ThreatDist2[ThreatDist2$ThreatMod=="Threat_Lower", ], 
-               type="l", lwd=2,layout=c(4,3), 
-               xlim=c(0,1),
-               xlab="Threat Score", ylab="Number of Vertical Lines", main="Distribution of Threat Scores across Vertical Lines; Low-Contrast Threat Model",
-               par.settings=simpleTheme(col=c("blue", "green")), 
-               scales=list(y=list(relation="free", rot=0)),
-               auto.key=list(text=c("Default", "Scenario"), x=0.95, y=.90, corner=c(1,1), lwd=3, type="l")
-        ); #plotThreatDistributions_Lower
-      
-      plotThreatDistributions_Upper=  
-        xyplot(Count~ThreatBin|factor(Month), groups=Scenario, 
-               data=ThreatDist2[ThreatDist2$ThreatMod=="Threat_Upper", ], 
-               type="l", lwd=2,layout=c(4,3), 
-               xlim=c(0,1),
-               xlab="Threat Score", ylab="Number of Vertical Lines", main="Distribution of Threat Scores across Vertical Lines; High-Constrast Threat Model",
-               par.settings=simpleTheme(col=c("blue", "green")), 
-               scales=list(y=list(relation="free", rot=0)),
-               auto.key=list(text=c("Default", "Scenario"), x=0.95, y=.90, corner=c(1,1), lwd=3, type="l")
-        ); #plotThreatDistributions_Upper
-      
+      if(ThreatBounds){
+        plotThreatDistributions_Lower=  
+          xyplot(Count~ThreatBin|factor(Month), groups=Scenario, 
+                 data=ThreatDist2[ThreatDist2$ThreatMod=="Threat_Lower", ], 
+                 type="l", lwd=2,layout=c(4,3), 
+                 xlim=c(0,1),
+                 xlab="Threat Score", ylab="Number of Vertical Lines", main="Distribution of Threat Scores across Vertical Lines; Low-Contrast Threat Model",
+                 par.settings=simpleTheme(col=c("blue", "green")), 
+                 scales=list(y=list(relation="free", rot=0)),
+                 auto.key=list(text=c("Default", "Scenario"), x=0.95, y=.90, corner=c(1,1), lwd=3, type="l")
+          ); #plotThreatDistributions_Lower
+        
+        plotThreatDistributions_Upper=  
+          xyplot(Count~ThreatBin|factor(Month), groups=Scenario, 
+                 data=ThreatDist2[ThreatDist2$ThreatMod=="Threat_Upper", ], 
+                 type="l", lwd=2,layout=c(4,3), 
+                 xlim=c(0,1),
+                 xlab="Threat Score", ylab="Number of Vertical Lines", main="Distribution of Threat Scores across Vertical Lines; High-Constrast Threat Model",
+                 par.settings=simpleTheme(col=c("blue", "green")), 
+                 scales=list(y=list(relation="free", rot=0)),
+                 auto.key=list(text=c("Default", "Scenario"), x=0.95, y=.90, corner=c(1,1), lwd=3, type="l")
+          ); #plotThreatDistributions_Upper
+      } ## end if ThreatBounds
     } ## threat distribution plots
     
     
@@ -3330,7 +3452,7 @@ DecisionTool=function(
   #############################################################--
   ## 9. Calculate Risk
   if(Fold) {
-    print("9 Calculating composite risk values")
+    print("Starting Stage 9. Calculating composite risk values")
     ## Risk is calculated as the product of Threat and whale presence.
     WhaleModel=aggregate(WhaleDensity~Month+Index+Index_LR, WhaleDensityModel, mean) ## aggregate to 10Nm
     names(WhaleModel)=c("Month", "Index", "Index_LR", "WhaleDensity")
@@ -3346,7 +3468,7 @@ DecisionTool=function(
       OutputMapCall=OutputMap(         
         PlotDF=PlotDF,         
         MapRef=MapRef_ForMapping,         
-        Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+        Sp.Layout=SpLayoutList,
         InputDF=WhaleModel_Map,
                     UpdateIndex=FALSE,  ##Index is automatically updated in code above       
         VarName="WhaleDensity",
@@ -3390,7 +3512,7 @@ DecisionTool=function(
               nrow(Stage9d), 
               " records in Stage9d do not have co-located Whale Habitat values", sep="")
       )
-      print( "   Some mismatches are expected with the default Duke_v8 whale model if inshore habitats are included")
+      print( "   Some mismatches may expected with whale models that lack coverage of inshore habitats")
     }
     Stage9d$WhaleDensity[is.na(Stage9d$WhaleDensity)]=0
     # Stage9d$WhaleDensity[is.na(Stage9d$WhaleDensity)]=0
@@ -3406,29 +3528,32 @@ DecisionTool=function(
     
     if(PrintDefaultMaps){
       ############### Risk Values ####################--
-      OutputMapCall=OutputMap(         
-        PlotDF=PlotDF,         
-        MapRef=MapRef_ForMapping,         
-        Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
-        InputDF=Stage9d[Stage9d$ThreatMod=="Threat", ],
-        UpdateIndex=UpdateIndex,  
-        VarName="Risk",
-        Plot1_Title="Total Risk Score - Default",
-        PlotLog=TRUE,
-        LogOffset=0.1,
-        Plot2_Title="Total Risk Score, Log-Scaled - Default"
-      )
-      
-      Stage9d_RiskScore_Px=OutputMapCall$Plot1_Px;
-      map9dRiskScore=OutputMapCall$Map1;
-      Stage9d_RiskScoreLog_Px=OutputMapCall$Plot1_Px
-      map9dRiskScoreLog=OutputMapCall$Map2
+      if(CoOccurrence==FALSE){ ## V3.0.4
+        ## risk maps
+        OutputMapCall=OutputMap(         
+          PlotDF=PlotDF,         
+          MapRef=MapRef_ForMapping,         
+          Sp.Layout=SpLayoutList,
+          InputDF=Stage9d[Stage9d$ThreatMod=="Threat", ],
+          UpdateIndex=UpdateIndex,  
+          VarName="Risk",
+          Plot1_Title="Total Risk Score - Default",
+          PlotLog=TRUE,
+          LogOffset=0.1,
+          Plot2_Title="Total Risk Score, Log-Scaled - Default"
+        )
+        
+        Stage9d_RiskScore_Px=OutputMapCall$Plot1_Px;
+        map9dRiskScore=OutputMapCall$Map1;
+        Stage9d_RiskScoreLog_Px=OutputMapCall$Plot1_Px
+        map9dRiskScoreLog=OutputMapCall$Map2
+      }
       
       ## CoOccurrence
       OutputMapCall=OutputMap(         
         PlotDF=PlotDF,         
         MapRef=MapRef_ForMapping,         
-        Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+        Sp.Layout=SpLayoutList,
         InputDF=Stage9d[Stage9d$ThreatMod=="CoOccurrence", ],
         UpdateIndex=UpdateIndex,     
         VarName="Risk",
@@ -3478,29 +3603,32 @@ DecisionTool=function(
       if(PrintScenarioMaps){
         
         ############### Risk Values ####################--
-        OutputMapCall=OutputMap(         
-          PlotDF=PlotDF,         
-          MapRef=MapRef_ForMapping,         
-          Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
-          InputDF=Stage9s[Stage9s$ThreatMod=="Threat",],
-          UpdateIndex=UpdateIndex,       
-          VarName="Risk",
-          Plot1_Title="Total Risk Score - Scenario, Gear Threat",
-          PlotLog=TRUE,
-          LogOffset=0.1,
-          Plot2_Title="Total Risk Score, Log-Scaled - Scenario, Gear Threat"
-        )
-        
-        Stage9s_RiskScore_Px=OutputMapCall$Plot1_Px;
-        map9sRiskScore=OutputMapCall$Map1;
-        Stage9s_RiskScoreLog_Px=OutputMapCall$Plot1_Px
-        map9sRiskScoreLog=OutputMapCall$Map2
+        if(CoOccurrence==FALSE){
+          OutputMapCall=OutputMap(         
+            PlotDF=PlotDF,         
+            MapRef=MapRef_ForMapping,         
+            Sp.Layout=SpLayoutList,
+            InputDF=Stage9s[Stage9s$ThreatMod=="Threat",],
+            UpdateIndex=UpdateIndex,       
+            VarName="Risk",
+            Plot1_Title="Total Risk Score - Scenario, Gear Threat",
+            PlotLog=TRUE,
+            LogOffset=0.1,
+            Plot2_Title="Total Risk Score, Log-Scaled - Scenario, Gear Threat"
+          )
+          
+          Stage9s_RiskScore_Px=OutputMapCall$Plot1_Px;
+          map9sRiskScore=OutputMapCall$Map1;
+          Stage9s_RiskScoreLog_Px=OutputMapCall$Plot1_Px
+          map9sRiskScoreLog=OutputMapCall$Map2
+
+        } 
         
         ######## CoOccurrence 
         OutputMapCall=OutputMap(         
           PlotDF=PlotDF,         
           MapRef=MapRef_ForMapping,         
-          Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+          Sp.Layout=SpLayoutList,
           InputDF=Stage9s[Stage9s$ThreatMod=="CoOccurrence",],
           UpdateIndex=UpdateIndex,  
           VarName="Risk",
@@ -3516,13 +3644,26 @@ DecisionTool=function(
         map9sRiskScoreLog_CoOc=OutputMapCall$Map2
         
         ## Change in Risk Maps ########################################################################
-        if (PrintMapsInHighResolution){  ##new 3.0.3 pulls Index as denoted by high or low res maps
-          DefaultRisk=aggregate(Risk~Index+Month, Stage9d[Stage9d$ThreatMod=="Threat",], sum); names(DefaultRisk)=c("Index", "Month", "Default")
-          ScenarioRisk=aggregate(Risk~Index+Month, Stage9s[Stage9s$ThreatMod=="Threat",], sum); names(ScenarioRisk)=c("Index", "Month", "Scenario") 
-        }else{
-          DefaultRisk=aggregate(Risk~Index_LR+Month, Stage9d[Stage9d$ThreatMod=="Threat",], sum); names(DefaultRisk)=c("Index", "Month", "Default")
-          ScenarioRisk=aggregate(Risk~Index_LR+Month, Stage9s[Stage9s$ThreatMod=="Threat",], sum); names(ScenarioRisk)=c("Index", "Month", "Scenario")
-        }##ends if highresolution map loop
+        if(CoOccurrence){
+          if (PrintMapsInHighResolution){  ##new 3.0.3 pulls Index as denoted by high or low res maps
+            DefaultRisk=aggregate(Risk~Index+Month, Stage9d[Stage9d$ThreatMod=="CoOccurrence",], sum); names(DefaultRisk)=c("Index", "Month", "Default")
+            ScenarioRisk=aggregate(Risk~Index+Month, Stage9s[Stage9s$ThreatMod=="CoOccurrence",], sum); names(ScenarioRisk)=c("Index", "Month", "Scenario") 
+          }else{
+            DefaultRisk=aggregate(Risk~Index_LR+Month, Stage9d[Stage9d$ThreatMod=="CoOccurrence",], sum); names(DefaultRisk)=c("Index", "Month", "Default")
+            ScenarioRisk=aggregate(Risk~Index_LR+Month, Stage9s[Stage9s$ThreatMod=="CoOccurrence",], sum); names(ScenarioRisk)=c("Index", "Month", "Scenario")
+          }##ends if highresolution map loop
+          
+        } else {
+          if (PrintMapsInHighResolution){  ##new 3.0.3 pulls Index as denoted by high or low res maps
+            DefaultRisk=aggregate(Risk~Index+Month, Stage9d[Stage9d$ThreatMod=="Threat",], sum); names(DefaultRisk)=c("Index", "Month", "Default")
+            ScenarioRisk=aggregate(Risk~Index+Month, Stage9s[Stage9s$ThreatMod=="Threat",], sum); names(ScenarioRisk)=c("Index", "Month", "Scenario") 
+          }else{
+            DefaultRisk=aggregate(Risk~Index_LR+Month, Stage9d[Stage9d$ThreatMod=="Threat",], sum); names(DefaultRisk)=c("Index", "Month", "Default")
+            ScenarioRisk=aggregate(Risk~Index_LR+Month, Stage9s[Stage9s$ThreatMod=="Threat",], sum); names(ScenarioRisk)=c("Index", "Month", "Scenario")
+          }##ends if highresolution map loop
+          
+        }
+        
         CombinedRisk=merge(DefaultRisk, ScenarioRisk, all.x=TRUE); # summary(CombinedRisk)
         CombinedRisk$Scenario[is.na(CombinedRisk$Scenario)]=0;
         CombinedRisk$Reduction=CombinedRisk$Default - CombinedRisk$Scenario; # summary(CombinedRisk); 
@@ -3533,7 +3674,7 @@ DecisionTool=function(
         OutputMapCall=OutputMap(         
           PlotDF=PlotDF,         
           MapRef=MapRef_ForMapping,         
-          Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+          Sp.Layout=SpLayoutList,
           InputDF=CombinedRisk,
           UpdateIndex=FALSE,
           VarName="Reduction",
@@ -3548,7 +3689,7 @@ DecisionTool=function(
         OutputMapCall=OutputMap(         
           PlotDF=PlotDF,         
           MapRef=MapRef_ForMapping,         
-          Sp.Layout=list(spCoast_layout1, spCoast_layout2, spLMA_layout1, spLMA_layout2, spStatAreas_layout1, spStatAreas_layout2),
+          Sp.Layout=SpLayoutList,
           InputDF=CombinedRisk,
           UpdateIndex=FALSE,
           VarName="PropReduction",
@@ -3614,8 +3755,7 @@ DecisionTool=function(
   }
   if(!dir.exists(OutputDir)) {dir.create(OutputDir)}
   setwd(OutputDir)
-
-    WriteDir=getwd(); #2.2.6
+  WriteDir=getwd(); #2.2.6
   #######################################################################################################--
   
   OutputData_Wide=Long2Wide(OutputData, fName="Scenario", vName="Value"); ## OutputData_Wide
@@ -3634,10 +3774,345 @@ DecisionTool=function(
   # GearCapPercentRemoved_Px
   # GearRemov_GearDensity_Px
   # GearRemov_GearDensityLog_Px
+
+  if(PrintSummary){ ##V3.0.3
+    print(paste("Input Spreadsheet: ", InputSpreadsheetName));
+    if(CoOccurrence){ ## V3.0.4
+      MeanThreatReduction=OutputData_Wide[OutputData_Wide$Variable=="RelativeRisk_CoOccurrence", ]
+    } else {
+      MeanThreatReduction=OutputData_Wide[OutputData_Wide$Variable=="RelativeRisk_Threat", ]
+    }
+    MeanThreatReduction$Default=round(MeanThreatReduction$Default, 2);
+    MeanThreatReduction$Scenario=round(MeanThreatReduction$Scenario, 2);
+    MeanThreatReduction$Reduction=round(MeanThreatReduction$Reduction, 3);
+    
+    print(MeanThreatReduction);
+  }
+  
   
   if(Fold) { ## writing output 
     print("Writing output")
     
+    ################################### Write output #################################--
+    if(PrintTables){
+      print("Writing Tables")
+      
+      pdf(file=paste(OutputDir, "_Tables.pdf", sep=""),
+          width=18, height=8.5, paper="special")
+      
+      ## Enter Model configuration ##
+      grid.draw(PrintTable(Tbl=ModelConfiguration,
+                           Title="",
+                           TitleFont=14)); grid.newpage()
+      
+      ## prior to 2.2.6       # if(nrow(ScenarioInputs)>0){
+      #   SI=ScenarioInputs
+      #   for(i in 1:ncol(SI)){
+      #     SI[ ,i][is.na(SI[ ,i])]=""
+      #   }
+      #   grid.draw(PrintTable(Tbl=ScenarioInputs,
+      #                        Title="Input Scenario Spreadsheet",
+      #                        TitleFont=14)); grid.newpage()
+      # }
+      
+      ## 2.2.6 
+      SI=ScenarioInputs
+      for(i in 1:ncol(SI)){
+        SI[ ,i][is.na(SI[ ,i])]=""
+      }
+      
+      if(nrow(SI)>30){ ## V3.0.9 split input spreadsheet across pages if necessary
+        SI1=SI[1:30, ];
+        SI2=SI[31:nrow(SI), ]
+        grid.draw(PrintTable(Tbl=SI1,
+                             Title="Input Scenario Spreadsheet",
+                             TitleFont=14)); grid.newpage()
+        grid.draw(PrintTable(Tbl=SI2,
+                             Title="Input Scenario Spreadsheet",
+                             TitleFont=14)); grid.newpage()
+      } else {
+        grid.draw(PrintTable(Tbl=SI,
+                             Title="Input Scenario Spreadsheet",
+                             TitleFont=14)); grid.newpage()
+      }
+      
+      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="GearFished_PostReduction", ], Digits=0),
+                           Title="Gear Numbers - Post Reductions",
+                           TitleFont=14)); grid.newpage()
+      
+      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="GearFished_PostCap", ], Digits=0),
+                           Title="Gear Numbers - Post GearCaps",
+                           TitleFont=14)); grid.newpage()
+      
+      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="GearFished_PostClosure", ], Digits=0),
+                           Title="Gear Numbers - Post Closure",
+                           TitleFont=14)); grid.newpage()
+      
+      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="NumStrings", ], Digits=0),
+                           Title="Total Strings",
+                           TitleFont=14)); grid.newpage()
+      
+      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="MeanStringLength", ], Digits=2),
+                           Title="Mean String Length (Gear per String)",
+                           TitleFont=14)); grid.newpage()
+      
+      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="NumVerticalLines", ], Digits=0),
+                           Title="Total Vertical Lines",
+                           TitleFont=14)); grid.newpage()
+      
+      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="RopeStrength", ], Digits=3),
+                           Title="Mean Rope Strength",
+                           TitleFont=14)); grid.newpage()
+      if(!CoOccurrence){
+        grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="MeanLineThreat_Threat", ], Digits=2),
+                             Title="Mean Threat Score per Vertical Line",
+                             TitleFont=14)); grid.newpage()
+      }
+      
+      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="TotalGearThreat_CoOccurrence", ], Digits=2),
+                           Title="Total Gear Threat Score - CoOccurrence",
+                           TitleFont=14)); grid.newpage()
+      
+      if(!CoOccurrence){
+        grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="TotalGearThreat_Threat", ], Digits=2),
+                             Title="Total Gear Threat Score - Mean Threat",
+                             TitleFont=14)); grid.newpage()
+      }
+      
+      if(!CoOccurrence & ThreatBounds){ ## V3.0.6
+        grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="TotalGearThreat_Threat_Lower", ], Digits=2),
+                             Title="Total Gear Threat Score - Threat Lower Bound",
+                             TitleFont=14)); grid.newpage()
+      }
+      
+      if(!CoOccurrence & ThreatBounds){ ## V3.0.6
+        grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="TotalGearThreat_Threat_Upper", ], Digits=2),
+                             Title="Total Gear Threat Score - Threat Upper Bound",
+                             TitleFont=14)); grid.newpage()
+      }
+      
+      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="WhaleDensity", ], Digits=2),
+                           Title="Total Whale Density",
+                           TitleFont=14)); grid.newpage()
+      
+      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="RelativeRisk_CoOccurrence", ], Digits=2),
+                           Title="Final Relative Risk Scores - CoOccurrence",
+                           TitleFont=14)); grid.newpage()
+      
+      if(!CoOccurrence){
+        grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="RelativeRisk_Threat", ], Digits=2),
+                             Title="Final Relative Risk Scores - Mean Threat",
+                             TitleFont=14)); grid.newpage()
+      }
+      
+      if(!CoOccurrence & ThreatBounds){ ## V3.0.6
+        grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="RelativeRisk_Threat_Lower", ], Digits=2),
+                             Title="Final Relative Risk Scores - Threat Lower Bound",
+                             TitleFont=14)); grid.newpage()
+      }
+      
+      if(!CoOccurrence & ThreatBounds){ ## V3.0.6
+        grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="RelativeRisk_Threat_Upper", ], Digits=2),
+                             Title="Final Relative Risk Scores - Threat Upper Bound",
+                             TitleFont=14)); 
+      }
+      dev.off()
+      
+    }  ## print tables
+    
+    if(WriteMapSources){
+      print("Writing Map Sources")
+      if(PrintDefaultMaps){
+        if(CoOccurrence){
+          save(
+            Stage1d_GearDensity_Px,
+            Stage1d_GearDensityLog_Px,
+            
+            Stage4d_StringLength_Px,
+            Stage4s_StringLength_Px,
+            
+            Stage5d_LineDensity_Px,
+            Stage5d_LineDensityLog_Px,
+            
+            Stage6d_LineStrength_Px,
+            
+            Stage8d_MeanThreat_Px,
+            Stage8d_TotalThreat_Px,
+            Stage8d_TotalThreatLog_Px,
+            
+            Stage9_WhaleHabitat_Px,
+            Stage9_WhaleHabitatLog_Px,
+            
+            Stage9d_RiskScore_Px_CoOc,
+            Stage9d_RiskScoreLog_Px_CoOc,
+            file=paste(OutputDir, "_MapSources_Default.Rdata", sep="")
+          )
+        } else {
+          save(
+            Stage1d_GearDensity_Px,
+            Stage1d_GearDensityLog_Px,
+            
+            Stage4d_StringLength_Px,
+            Stage4s_StringLength_Px,
+            
+            Stage5d_LineDensity_Px,
+            Stage5d_LineDensityLog_Px,
+            
+            Stage6d_LineStrength_Px,
+            
+            Stage8d_MeanThreat_Px,
+            Stage8d_TotalThreat_Px,
+            Stage8d_TotalThreatLog_Px,
+            
+            Stage9_WhaleHabitat_Px,
+            Stage9_WhaleHabitatLog_Px,
+            
+            Stage9d_RiskScore_Px,
+            Stage9d_RiskScoreLog_Px,
+            Stage9d_RiskScore_Px_CoOc,
+            Stage9d_RiskScoreLog_Px_CoOc,
+            file=paste(OutputDir, "_MapSources_Default.Rdata", sep="")
+          )
+        } ## end CoOccurrence Else
+      } ## end PrintDefaultMaps
+      
+      ## to be added    
+      # GearRemoved_Px
+      # GearRemovedLog_Px
+      # GearCapPercentRemoved_Px
+      
+      
+      if(PrintScenarioMaps){
+        if(CoOccurrence){
+          save(
+            Stage1s_GearDensity_Px,
+            Stage1s_GearDensityLog_Px,
+            
+            Stage2s_GearDensity_Px,
+            Stage2s_GearDensityLog_Px,
+            
+            Stage3s_GearDensity_PostClosure_Px,## V2.2.7
+            Stage3s_GearDensity_PostClosureLog_Px,## V2.2.7
+            
+            Stage4s_StringLength_Px,
+            
+            Stage5s_LineDensity_Px,
+            Stage5s_LineDensityLog_Px,
+            
+            Stage7s_LineStrength_Px, ## V2.2.7
+            
+            Stage8s_MeanThreat_Px,
+            Stage8s_TotalThreat_Px,
+            Stage8s_TotalThreatLog_Px,
+            
+            Stage9_WhaleHabitat_Px,
+            Stage9_WhaleHabitatLog_Px,
+            
+            Stage9s_RiskScore_Px_CoOc,
+            Stage9s_RiskScoreLog_Px_CoOc,
+            
+            Stage9_RiskReduction_Px,
+            Stage9_PropRiskReduction_Px,
+            
+            file=paste(OutputDir, "_MapSources_Scenario.Rdata", sep="")
+          )
+          
+        } else {
+          save(
+            Stage1s_GearDensity_Px,
+            Stage1s_GearDensityLog_Px,
+            
+            Stage2s_GearDensity_Px,
+            Stage2s_GearDensityLog_Px,
+            
+            Stage3s_GearDensity_PostClosure_Px,## V2.2.7
+            Stage3s_GearDensity_PostClosureLog_Px,## V2.2.7
+            
+            Stage4s_StringLength_Px,
+            
+            Stage5s_LineDensity_Px,
+            Stage5s_LineDensityLog_Px,
+            
+            Stage7s_LineStrength_Px, ## V2.2.7
+            
+            Stage8s_MeanThreat_Px,
+            Stage8s_TotalThreat_Px,
+            Stage8s_TotalThreatLog_Px,
+            
+            Stage9_WhaleHabitat_Px,
+            Stage9_WhaleHabitatLog_Px,
+            
+            Stage9s_RiskScore_Px,
+            Stage9s_RiskScoreLog_Px,
+            Stage9s_RiskScore_Px_CoOc,
+            Stage9s_RiskScoreLog_Px_CoOc,
+            
+            Stage9_RiskReduction_Px,
+            Stage9_PropRiskReduction_Px,
+            
+            file=paste(OutputDir, "_MapSources_Scenario.Rdata", sep="")
+          )
+          
+        }
+      }
+      
+      if(exists("GearCapPercentRemoved_Px")){
+        save(GearCapPercentRemoved_Px, 
+             file=paste(OutputDir, "_MapSources_Scenario_GearCapRemoved.Rdata", sep=""))
+      }
+      
+      
+      if(exists("Redist_GearDensity_Px")){
+        save(Redist_GearDensity_Px, Redist_GearDensityLog_Px, 
+             file=paste(OutputDir, "_MapSources_Scenario_RedistGear.Rdata", sep=""))
+      }
+      
+      if(exists("GearRemov_GearDensity_Px")){
+        save(GearRemov_GearDensity_Px, GearRemov_GearDensityLog_Px, 
+             file=paste(OutputDir, "_MapSources_Scenario_RemovedGear.Rdata", sep=""))
+      }
+      
+      
+    } ## end WriteMapSources 
+    
+    if(WriteOutputCsv) {
+      print("Writing Output to .csv")
+      
+      write.csv(x=OutputData_Wide,
+                file=paste(OutputDir, "_OutputData.csv", sep=""),
+                row.names = FALSE)
+    }  
+    
+    if(WriteDetailedOutput){
+      print("Writing Extended Output")
+      if(TestScenario){
+        save(Stage1d, Stage1s,
+             Stage2d, Stage2s,
+             Stage3d, Stage3s,
+             Stage4d, Stage4s,
+             Stage5d, Stage5s,
+             Stage7d, Stage7s,
+             Stage8d, Stage8s,
+             Stage9d, Stage9s,
+             WhaleDensityModel,
+             file=paste0(OutputDir, "_ExtendedOutput.Rdata"), 
+             version=2)
+      } else {
+        save(Stage1d, 
+             Stage2d, 
+             Stage3d, 
+             Stage4d, 
+             Stage5d, 
+             Stage7d, 
+             Stage8d, 
+             Stage9d, 
+             WhaleDensityModel,
+             file=paste0(OutputDir, "_ExtendedOutput.Rdata"), 
+             version=2)
+      }
+    }
+    
+    ################################### Write maps #################################--
     if(PrintDefaultMaps){
       print("Writing Default Maps")
       
@@ -3666,8 +4141,11 @@ DecisionTool=function(
       plot(map9WhaleHabitat);
       plot(map9WhaleHabitatLog);
       
-      plot(map9dRiskScore);
-      plot(map9dRiskScoreLog);
+      if(CoOccurrence==FALSE){ ##V3.0.4
+        plot(map9dRiskScore);
+        plot(map9dRiskScoreLog);
+      };
+      
       plot(map9dRiskScore_CoOc);
       plot(map9dRiskScoreLog_CoOc);
       
@@ -3676,41 +4154,60 @@ DecisionTool=function(
       dev.off()
       
       ## save maps
-      save(
-        map1dGearDensity,
-        map1dGearDensityLog,
-        map4dStringLength,
-        
-        map5dLineDensity,
-        map5dLineDensityLog,
-        
-        map6dLineStrength,
-        
-        map8dMeanThreat,
-        map8dTotalThreat,
-        map8dTotalThreatLog,
-        
-        map9WhaleHabitat,
-        map9WhaleHabitatLog,
-        
-        map9dRiskScore,
-        map9dRiskScoreLog,
-        
-        file=paste(OutputDir, "_DefaultMaps.Rdata", sep="")
-      )
-      
+      # if(CoOccurrence){
+      #   save(
+      #     map1dGearDensity,
+      #     map1dGearDensityLog,
+      #     map4dStringLength,
+      #     
+      #     map5dLineDensity,
+      #     map5dLineDensityLog,
+      #     
+      #     map6dLineStrength,
+      #     
+      #     map8dMeanThreat,
+      #     map8dTotalThreat,
+      #     map8dTotalThreatLog,
+      #     
+      #     map9WhaleHabitat,
+      #     map9WhaleHabitatLog,
+      #     
+      #     map9dRiskScore_CoOc,
+      #     map9dRiskScoreLog_CoOc,
+      #     
+      #     file=paste(OutputDir, "_DefaultMaps.Rdata", sep="")
+      #   )
+      #   
+      # } else {
+      #   save(
+      #     map1dGearDensity,
+      #     map1dGearDensityLog,
+      #     map4dStringLength,
+      #     
+      #     map5dLineDensity,
+      #     map5dLineDensityLog,
+      #     
+      #     map6dLineStrength,
+      #     
+      #     map8dMeanThreat,
+      #     map8dTotalThreat,
+      #     map8dTotalThreatLog,
+      #     
+      #     map9WhaleHabitat,
+      #     map9WhaleHabitatLog,
+      #     
+      #     map9dRiskScore,
+      #     map9dRiskScoreLog,
+      #     
+      #     map9dRiskScore_CoOc,
+      #     map9dRiskScoreLog_CoOc,
+      #     
+      #     file=paste(OutputDir, "_DefaultMaps.Rdata", sep="")
+      #   )
+      #   
+      # } ## end CoOccurrence else
+
     } ## print default maps
-    
-    if(!CoOccurrence){ ## print threat model uncertainty 
-      pdf(file=paste(OutputDir, "_ThreatDistributions.pdf", sep=""),
-          width=11,height=9.5,paper="special")
-      
-      plot(plotRopeStrengthDistribution); 
-      plot(plotThreatDistributions);
-      plot(plotThreatDistributions_Lower);
-      plot(plotThreatDistributions_Upper);
-      dev.off()
-    }
     
     if(TestScenario & PrintScenarioMaps){
       print("Writing Scenario Maps")
@@ -3753,8 +4250,10 @@ DecisionTool=function(
       plot(map9sRiskScore_CoOc);
       plot(map9sRiskScoreLog_CoOc);
       
-      plot(map9sRiskScore);
-      plot(map9sRiskScoreLog);
+      if(CoOccurrence==FALSE){
+        plot(map9sRiskScore);
+        plot(map9sRiskScoreLog);
+      };
       
       plot(map9RiskReduction);
       plot(map9PropRiskReduction);
@@ -3764,39 +4263,52 @@ DecisionTool=function(
       dev.off()
       
       ## save maps
-      save(
-        map1sGearDensity,
-        map1sGearDensityLog,
-        
-        map3sGearDensity_PostClosure, ## post closures
-        map3sGearDensity_PostClosureLog, ## post closures
-        
-        map4sStringLength,
-        
-        map5sLineDensity,
-        map5sLineDensityLog,
-        
-        map7sLineStrength,
-        
-        map8sMeanThreat,
-        map8sTotalThreat,
-        map8sTotalThreatLog,
-        map9WhaleHabitat,
-        map9WhaleHabitatLog,
-        map9sRiskScore,
-        map9sRiskScoreLog,
-        map9sRiskScore_CoOc,
-        map9sRiskScoreLog_CoOc,
-        
-        map9RiskReduction,
-        map9PropRiskReduction,
-        
-        # map9sRiskScoreLog_Abridged,
-        
-        file=paste(OutputDir, "_ScenarioMaps.Rdata", sep="")
-      )
+      # save(
+      #   map1sGearDensity,
+      #   map1sGearDensityLog,
+      #   
+      #   map3sGearDensity_PostClosure, ## post closures
+      #   map3sGearDensity_PostClosureLog, ## post closures
+      #   
+      #   map4sStringLength,
+      #   
+      #   map5sLineDensity,
+      #   map5sLineDensityLog,
+      #   
+      #   map7sLineStrength,
+      #   
+      #   map8sMeanThreat,
+      #   map8sTotalThreat,
+      #   map8sTotalThreatLog,
+      #   map9WhaleHabitat,
+      #   map9WhaleHabitatLog,
+      #   map9sRiskScore,
+      #   map9sRiskScoreLog,
+      #   map9sRiskScore_CoOc,
+      #   map9sRiskScoreLog_CoOc,
+      #   
+      #   map9RiskReduction,
+      #   map9PropRiskReduction,
+      #   
+      #   # map9sRiskScoreLog_Abridged,
+      #   
+      #   file=paste(OutputDir, "_ScenarioMaps.Rdata", sep="")
+      # )
       
     } ## print scenario maps
+    
+    if(!CoOccurrence & PrintScenarioMaps){ ## print threat model uncertainty 
+      pdf(file=paste(OutputDir, "_ThreatDistributions.pdf", sep=""),
+          width=11,height=9.5,paper="special")
+      
+      plot(plotRopeStrengthDistribution); 
+      plot(plotThreatDistributions);
+      if(ThreatBounds){
+        plot(plotThreatDistributions_Lower);
+        plot(plotThreatDistributions_Upper);
+      }
+      dev.off()
+    } ## print threat model uncertainty
     
     if(exists("map3sRedistributedGearDensity")) {
       print("Writing Gear Redistribution Maps")
@@ -3814,270 +4326,7 @@ DecisionTool=function(
       dev.off()
     }
     
-    if(PrintTables){
-      print("Writing Tables")
-      
-      pdf(file=paste(OutputDir, "_Tables.pdf", sep=""),
-          width=15, height=8.5, paper="special")
-      
-      ## Enter Model configuration ##
-      grid.draw(PrintTable(Tbl=ModelConfiguration,
-                           Title="",
-                           TitleFont=14)); grid.newpage()
-      
-      ## prior to 2.2.6       # if(nrow(ScenarioInputs)>0){
-      #   SI=ScenarioInputs
-      #   for(i in 1:ncol(SI)){
-      #     SI[ ,i][is.na(SI[ ,i])]=""
-      #   }
-      #   grid.draw(PrintTable(Tbl=ScenarioInputs,
-      #                        Title="Input Scenario Spreadsheet",
-      #                        TitleFont=14)); grid.newpage()
-      # }
-
-      ## 2.2.6 
-      SI=ScenarioInputs
-        for(i in 1:ncol(SI)){
-          SI[ ,i][is.na(SI[ ,i])]=""
-        }
-      grid.draw(PrintTable(Tbl=ScenarioInputs,
-                           Title="Input Scenario Spreadsheet",
-                           TitleFont=14)); grid.newpage()
-      
-      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="GearFished_PostReduction", ], Digits=0),
-                           Title="Gear Numbers - Post Reductions",
-                           TitleFont=14)); grid.newpage()
-      
-      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="GearFished_PostCap", ], Digits=0),
-                           Title="Gear Numbers - Post GearCaps",
-                           TitleFont=14)); grid.newpage()
-      
-      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="GearFished_PostClosure", ], Digits=0),
-                           Title="Gear Numbers - Post Closure",
-                           TitleFont=14)); grid.newpage()
-      
-      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="NumStrings", ], Digits=0),
-                           Title="Total Strings",
-                           TitleFont=14)); grid.newpage()
-      
-      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="MeanStringLength", ], Digits=2),
-                           Title="Mean String Length (Gear per String)",
-                           TitleFont=14)); grid.newpage()
-      
-      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="NumVerticalLines", ], Digits=0),
-                           Title="Total Vertical Lines",
-                           TitleFont=14)); grid.newpage()
-      
-      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="RopeStrength", ], Digits=3),
-                           Title="Mean Rope Strength",
-                           TitleFont=14)); grid.newpage()
-      if(!CoOccurrence){
-        grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="MeanLineThreat_Threat", ], Digits=2),
-                             Title="Mean Threat Score per Vertical Line",
-                             TitleFont=14)); grid.newpage()
-      }
-      
-      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="TotalGearThreat_CoOccurrence", ], Digits=0),
-                           Title="Total Gear Threat Score - CoOccurrence",
-                           TitleFont=14)); grid.newpage()
-      
-      if(!CoOccurrence){
-        grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="TotalGearThreat_Threat", ], Digits=0),
-                             Title="Total Gear Threat Score - Mean Threat",
-                             TitleFont=14)); grid.newpage()
-      }
-      
-      if(!CoOccurrence){
-        grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="TotalGearThreat_Threat_Lower", ], Digits=0),
-                             Title="Total Gear Threat Score - Threat Lower Bound",
-                             TitleFont=14)); grid.newpage()
-      }
-      
-      if(!CoOccurrence){
-        grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="TotalGearThreat_Threat_Upper", ], Digits=0),
-                             Title="Total Gear Threat Score - Threat Upper Bound",
-                             TitleFont=14)); grid.newpage()
-      }
-      
-      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="WhaleDensity", ], Digits=0),
-                           Title="Total Whale Density",
-                           TitleFont=14)); grid.newpage()
-      
-      grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="RelativeRisk_CoOccurrence", ], Digits=2),
-                           Title="Final Relative Risk Scores - CoOccurrence",
-                           TitleFont=14)); grid.newpage()
-      
-      if(!CoOccurrence){
-        grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="RelativeRisk_Threat", ], Digits=2),
-                             Title="Final Relative Risk Scores - Mean Threat",
-                             TitleFont=14)); grid.newpage()
-      }
-      
-      if(!CoOccurrence){
-        grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="RelativeRisk_Threat_Lower", ], Digits=2),
-                             Title="Final Relative Risk Scores - Threat Lower Bound",
-                             TitleFont=14)); grid.newpage()
-      }
-      
-      if(!CoOccurrence){
-        grid.draw(PrintTable(Tbl=TableFormat(OutputData_Wide[OutputData_Wide$Variable=="RelativeRisk_Threat_Upper", ], Digits=2),
-                             Title="Final Relative Risk Scores - Threat Upper Bound",
-                             TitleFont=14)); 
-      }
-      dev.off()
-      
-    }  ## print tables
-    
     ### Add list of maps
-    
-    if(WriteMapSources){
-      print("Writing Map Sources")
-      if(PrintDefaultMaps){
-        save(
-          Stage1d_GearDensity_Px,
-          Stage1d_GearDensityLog_Px,
-          
-          Stage4d_StringLength_Px,
-          Stage4s_StringLength_Px,
-          
-          Stage5d_LineDensity_Px,
-          Stage5d_LineDensityLog_Px,
-          
-          ## no output from Stage5 yet
-          
-          Stage6d_LineStrength_Px,
-          # Stage6s_LineDia_Px,
-          
-          ## no output from Stage7 yet
-          
-          Stage8d_MeanThreat_Px,
-          Stage8d_TotalThreat_Px,
-          Stage8d_TotalThreatLog_Px,
-          
-          Stage9_WhaleHabitat_Px,
-          Stage9_WhaleHabitatLog_Px,
-          Stage9d_RiskScore_Px,
-          Stage9d_RiskScoreLog_Px,
-          
-          Stage9d_RiskScore_Px_CoOc,
-          Stage9d_RiskScoreLog_Px_CoOc,
-          
-          # Stage9d_RiskScoreLog_Abridged_Px,
-          
-          file=paste(OutputDir, "_MapSources_Default.Rdata", sep="")
-        )
-      } 
-      
-      ## to be added    
-      # GearRemoved_Px
-      # GearRemovedLog_Px
-      # GearCapPercentRemoved_Px
-      
-      
-      if(PrintScenarioMaps){
-        
-        save(
-          Stage1s_GearDensity_Px,
-          Stage1s_GearDensityLog_Px,
-          
-          Stage2s_GearDensity_Px,
-          Stage2s_GearDensityLog_Px,
-          
-          # Stage3s_GearDensity_Px,## commented V2.2.7
-          # Stage3s_GearDensityLog_Px,## commented V2.2.7
-          Stage3s_GearDensity_PostClosure_Px,## V2.2.7
-          Stage3s_GearDensity_PostClosureLog_Px,## V2.2.7
-          
-          Stage4s_StringLength_Px,
-          
-          Stage5s_LineDensity_Px,
-          Stage5s_LineDensityLog_Px,
-          
-          ## no output from Stage5 yet
-          
-          # Stage6s_LineStrength_Px, ## commented V2.2.7
-          Stage7s_LineStrength_Px, ## V2.2.7
-          
-          ## no output from Stage7 yet
-          
-          Stage8s_MeanThreat_Px,
-          Stage8s_TotalThreat_Px,
-          Stage8s_TotalThreatLog_Px,
-          
-          Stage9_WhaleHabitat_Px,
-          Stage9_WhaleHabitatLog_Px,
-          Stage9s_RiskScore_Px,
-          Stage9s_RiskScoreLog_Px,
-          
-          Stage9s_RiskScore_Px_CoOc,
-          Stage9s_RiskScoreLog_Px_CoOc,
-          
-          Stage9_RiskReduction_Px,
-          Stage9_PropRiskReduction_Px,
-          
-          # Stage9s_RiskScoreLog_Abridged_Px,
-          
-          file=paste(OutputDir, "_MapSources_Scenario.Rdata", sep="")
-        )
-        
-        if(exists("GearCapPercentRemoved_Px")){
-          save(GearCapPercentRemoved_Px, 
-               file=paste(OutputDir, "_MapSources_Scenario_GearCapRemoved.Rdata", sep=""))
-        }
-        
-        
-        if(exists("Redist_GearDensity_Px")){
-          save(Redist_GearDensity_Px, Redist_GearDensityLog_Px, 
-               file=paste(OutputDir, "_MapSources_Scenario_RedistGear.Rdata", sep=""))
-        }
-        
-        if(exists("GearRemov_GearDensity_Px")){
-          save(GearRemov_GearDensity_Px, GearRemov_GearDensityLog_Px, 
-               file=paste(OutputDir, "_MapSources_Scenario_RemovedGear.Rdata", sep=""))
-        }
-        
-        
-      } 
-      
-    }
-    
-    if(WriteOutputCsv) {
-      print("Writing Output to .csv")
-      
-      write.csv(x=OutputData_Wide,
-                file=paste(OutputDir, "_OutputData.csv", sep=""),
-                row.names = FALSE)
-    }  
-    
-    if(WriteDetailedOutput){
-      print("Writing Extended Output")
-      if(TestScenario){
-        save(Stage1d, Stage1s,
-             Stage2d, Stage2s,
-             Stage3d, Stage3s,
-             Stage4d, Stage4s,
-             Stage5d, Stage5s,
-             Stage7d, Stage7s,
-             Stage8d, Stage8s,
-             Stage9d, Stage9s,
-             WhaleDensityModel,
-             file=paste0(OutputDir, "_ExtendedOutput.Rdata"), 
-             version=2)
-      } else {
-        save(Stage1d, 
-             Stage2d, 
-             Stage3d, 
-             Stage4d, 
-             Stage5d, 
-             Stage7d, 
-             Stage8d, 
-             Stage9d, 
-             WhaleDensityModel,
-             file=paste0(OutputDir, "_ExtendedOutput.Rdata"), 
-             version=2)
-      }
-    }
-    
     if(ArchiveInputSpreadsheet){ ## V2.2.6
       SuccessfulCopy=try(
         file.copy(
@@ -4096,16 +4345,6 @@ DecisionTool=function(
     }
     
   } ## writing output 
-    
-    if(PrintSummary){ ##V3.0.3
-      print(paste("Input Spreadsheet: ", InputSpreadsheetName));
-      MeanThreatReduction=OutputData_Wide[OutputData_Wide$Variable=="RelativeRisk_Threat", ]
-      MeanThreatReduction$Default=round(MeanThreatReduction$Default, 2);
-      MeanThreatReduction$Scenario=round(MeanThreatReduction$Scenario, 2);
-      MeanThreatReduction$Reduction=round(MeanThreatReduction$Reduction, 3);
-      
-      print(MeanThreatReduction);
-    }
     
     print(paste0("Model run completed. Runtime ", ## V2.3.2
                 round((as.numeric(Sys.time() - as.numeric(StartTime)))/60,2), " minutes"

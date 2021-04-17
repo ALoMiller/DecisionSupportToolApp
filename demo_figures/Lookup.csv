@@ -1,0 +1,10 @@
+Action,LMA,State,StatArea,Fishery,Shapefile,Months,Percentage,StringRegulation,StringLen,MaxRopeStrength,RopelessDevice,GearCap,MaxGearSnglLn
+Constraint_Spatial,1,1,1,0,1,1,0,0,0,0,0,0,0
+Constraint_Fishery,0,0,0,2,0,0,0,0,0,0,0,0,0
+GearReduction,1,1,1,0,1,1,2,0,0,0,0,0,0
+GearCap,1,1,1,0,1,1,0,0,0,0,0,2,0
+Closure,0,0,0,0,2,1,0,0,0,0,0,0,0
+StringLength,1,1,1,0,1,1,0,2,2,0,0,0,0
+MaxGearWSingleLine,1,1,1,0,1,1,0,0,0,0,0,0,2
+MaxRopeStrength,1,1,1,0,1,1,1,0,0,2,0,0,0
+RopelessDevice,1,1,1,0,1,1,0,0,0,0,2,0,0

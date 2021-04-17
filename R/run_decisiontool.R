@@ -1,4 +1,4 @@
-Version="DecisionSupportTool_V3.0.7.R"
+Version="DecisionSupportTool_V3.1.0.R"
 HD=here::here()
 run_decisiontool <- function(HD=here::here(),InputSpreadsheetName="ScenarioTemplate_V3.0.1.csv",
                              GearMapName="GearMap_Lobster_V3.0.0.Rdata",
@@ -18,7 +18,7 @@ run_decisiontool <- function(HD=here::here(),InputSpreadsheetName="ScenarioTempl
     WhaleInputModel=WhaleMapName, ## only compatible with GearMap v3+
     
     ################# select model options ################--
-    CommentText="SHINY V3.0.6 TEST",
+    CommentText=CommentText,
     TestScenario=TRUE, ## run a test scenario or only a default baseline?
     CoOccurrence=FALSE, ## run co-occurrence only; no gear threat model (speeds up model run time)
     HighResolution=FALSE, ## Option to run in HighResolution mode. Slows model drammatically, not fully tested

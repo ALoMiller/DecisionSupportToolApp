@@ -1,0 +1,250 @@
+<style type="text/css">
+.main-container {
+  max-width: 1800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+# Decision Support Tool
+#### **Atlantic Large Whale Take Reduction Team Decision Support Tool**
+
+### What is this tool used for?
+
+The Decision Support Tool (DST) attempts to model the locations and gear configurations of fixed gear, including gillnets and trap/pot gear, and the co-located whale densities along the US east coast from Maine through most of Florida. For a model run, users select the spatial domain, fisheries of interest, whale species, and specify one or more management actions to simulate.
+
+Gillnet and trap/pot fisheries are condensed into target species groups where appropriate which are modeled separately to examine how different management strategies affect individual fisheries of interest.
+
+**The following fisheries are currently available in the DST**:
+
+Trap/Pot fisheries for state and federal fisheries:
+
+* Lobster
+* Fishpot
+* Whelkpot
+* Blue crab
+
+Gillnet fisheries for federal and some state waters:
+
+* Cod, haddock, pollock
+* Monkfish
+* Spiny Dogfish
+* Smooth Dogfish
+* Bluefish, Striped bass
+* Inshore demersals (croaker, black sea bass, porgy, kingfish)
+* Menhaden
+
+**The following management measures can be implemented spatially and on a monthly basis**:
+
+* Gear Reductions – removal of a portion of actively fished gear
+* Gear Caps – limitation of the amount of gear individual fishermen can fish
+* Spatial Closures – removal and redistribution of gear in a specified area
+* String / Trawl length measures – modification of the amount of gear in a string / trawl
+* Maximum String / Trawl – limits what can be fished with a single endline
+* Maximum Rope Strength – limit allowed for endlines
+
+
+### How to use the tool:
+For users with [R](https://cran.r-project.org/) and the necessary packages installed on their computers, run the following code to initiate an [R shiny](https://shiny.rstudio.com/) interactive web application.
+
+```
+library(shinydashboard)
+library(rhandsontable)
+library(rgdal)
+library(sp)
+library(sf)
+library(maptools)
+library(grid)
+library(gtable)
+library(gridExtra)
+library(shinyjs)
+library(leaflet)
+library(shinyEffects)
+library(stringr)
+library(dplyr)
+library(rmarkdown)
+library(geosphere)
+library(lattice)
+library(here)
+library(knitr)
+library(kableExtra)
+
+    
+shiny::runGitHub("DecisionSupportToolApp", username = "ALoMiller", ref = "master")
+
+```
+
+### Create scenarios and run the model
+
+#### **Specify Model**
+
+Once you have the app up and running, scenarios can be created with the following steps:
+
+1.  Choose to open or modify an existing scenario from the dropdown OR create a new scenario by adding actions to the interactive spreadsheet (more information on defining actions in the "Defining Scenarios" section below).
+2.  Select the type of **Fishery** you are interested in. Based on that fishery, next choose a **Gear Map**. Next, select the **Whale Habitat Model** and enter a new name for your scenario.
+3.  Add comments to be noted in the output table (optional) and select from options to **Run a test scenario** (vs. just a default baseline), **Run co-occurrence only** (no gear threat model if checked), and **Run in high resolution** mode (slows model dramatically if checked).
+4.  Click **Run Model** to initiate and scroll down for model status updates and warnings which will print below.  
+
+![Figure 1. Steps to run a new scenario.](demo_figures/CreateScenario.PNG)
+
+#### **Visualize Areas**
+
+To learn more about the spatial extent of different areas (e.g., LMA, StatArea, State waters, etc), click the **Visualize Areas** tab to explore the different spatial domains used in the model.
+
+![Figure 2. Visualize Areas viewing tool showing the labeled Statistical Areas available to the model.](demo_figures/MapVizStatAreas.PNG)  
+
+This map is interactive and can be zoomed and clicked on to learn more about a specific management area.
+
+![Figure 3. Visualize Areas viewing tool zoomed in to Maine DMR Zones displying the location of Zone C.](demo_figures/MapVizMaine.PNG)  
+
+
+### Evaluate model output
+
+#### **View Result Tables & Figures**
+
+Once the model finishes running, click on the **View Result Tables & Figures** tab to view results. If more than one scenario has been run during the session, use the **Choose Scenario** dropdown to switch between model results. Click on the various tabs below to view a pdf of the output Tables, Gear Redistribution Figures, Default Figures, Scenario Figures, and Threat Figures. The viewer allows the user to zoom on figures, download, and print. 
+
+![Figure 4. Example output table for a scenario.](demo_figures/TableOutput.PNG)
+
+![Figure 5. Example output figures for a scenario.](demo_figures/FigOutput.PNG)
+
+
+### Defining Scenarios								
+Each "Action" or row in the input spreadsheet is an independent record that is interpreted by the model function. *Note: Actions are added to the model sequentially (e.g., row 1 is followed by row 2, etc) and the order of the rows may influence the outcome of the model.*
+
+#### **Actions**
+
+In the Action column, select an option from the drop-down list								
+Currently implemented: 
+
+*	Constraint_Fishery
+*	Constraint_Spatial
+*	GearReduction
+* GearCap
+*	Closure
+* StringLength
+* MaxGearWSingleLine
+* MaxRopeStrength
+* Ropeless Device
+* NoAction
+							
+#### **Action input types**
+
+Fill out the rest of the record with the desired inputs. Note that not all columns are applicable all actions and Figure 6. identifies required and optional fields.
+
+*	LMA	- Constrain action to Lobster Management Area						
+*	State	- Constrain action to waters off given state						
+*	StatArea - Constrain action to statistical area						
+*	Fishery - Constrain model run to given fleet						
+*	Shapefile - Constrain action to specified input shapefile	
+*	Months - Comma delimited text string of months to apply the action over						
+*	Percentage - Input percentages for action (i.e. gear reductions, etc.)	
+
+```{r, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
+y <- read.csv(here::here("demo_figures/Lookup.csv"))
+y <- y %>%
+     mutate_at(vars(-Action), function(x){
+       recode(x,"0"="0","1"="1","2"="2")}) %>%
+     as.data.frame()
+
+y %>%
+  mutate_at(vars(-Action), function(x){
+  kableExtra::cell_spec(x, format = "html", background = factor(x,c('0','1','2'),c("transparent", "#e9c46a", "#2a9d8f")),
+                        color = factor(x,c('0','1','2'),c("transparent", "#e9c46a", "#2a9d8f")), align= 'c')}) %>%
+  knitr::kable(format="markdown", escape=FALSE, align=c('l','c','c','c','c','c','c','c','c','c','c','c','c','c'))
+ 
+```
+Figure 6. Key defining optional and required fields for each scenario Action item in yellow and blue, respectively.
+
+### Example inputs and interpretation
+
+Below are a few examples of **Action** items added to the input spreadsheet and how to interpret and fill out the cells for the remaining columns in that row.
+
+#### **Spatial constraints**
+
+This specifies the spatial domain of the model run. Think of specifications within a line as "ands" and subsequent lines as "ors" so the following would be interpreted as "Constrain the model to (LMA1 and Maine and StatAreas 511 and 512 and the bounds of the 'Example_511_512_Border' shapefile) or (LMA3)". You can have as many records for spatial constraints as desired. The model will use the union of constraints as the domain for the model run.
+
+| Action             | LMA | State | StatArea | Fishery | Shapefile              |
+|--------------------|-----|-------|----------|---------|------------------------|
+| Constraint_Spatial | A1  | ME    | 511, 512 |         | Example_511_512_Border |
+| Constraint_Spatial | A3  |       |          |         |                        |
+
+#### **Fishery constraints** 
+
+This specifies the spatial fleet of the model run. The following interpreted as "constrain the model run to include the NonExempt fishery". You can only specify one fishery constraint							
+								
+| Action             | Fishery   |
+|--------------------|-----------|
+| Constraint_Fishery | NonExempt |
+
+#### **Closures** 
+
+This removes all fishing from a region, either seasonally or for the entire year. The following would be interpreted as close the area within 'TinyWedge_LMA1' for May - August. Like spatial constraints, the extent of closures can use the LMA, State, and StatArea columns as well with each field interpreted as an "and"
+
+| Action  | LMA | State | StatArea | Shapefile      | Months  |
+|---------|-----|-------|----------|----------------|---------|
+| Closure |     |       |          | TinyWedge_LMA1 | 5,6,7,8 |
+								
+#### **Gear Reductions**
+
+This removes a percentage of traps from a spatial domain. The following would implement a 60% trap reduction in LMA3 and StatArea 515 for the month of May.
+								
+| Action        | LMA | State | StatArea | Shapefile | Months | Percentage |
+|---------------|-----|-------|----------|-----------|--------|------------|
+| GearReduction | A3  |       | 515      |           | 5      | 0.6        |
+
+
+#### **Overview of all options**
+
+All settings that are currently available can be seen below.
+
+|Action             |LMAs        |States |Fishery             |StatArea      |StringRegulation |RopelessDevice  |Shapefiles            |
+|:------------------|:-----------|:------|:-------------------|:-------------|:----------------|:---------------|:---------------------|
+|Constraint_Fishery |A1          |ME     |NonExempt           |464  465  467 |Min              |TimedRelease    |3nmi_to_12nmi         |
+|Constraint_Spatial |A2          |NH     |Exempt              |511  512  513 |Max              |AcousticRelease |12nmi_to_EEZ_Boundary |
+|GearReduction      |A2_3overlap |MA     |Midshelf_Lobster    |514  515  521 |Exactly          |                |Coast_to_3nmi         |
+|GearCap            |A3          |       |Midshelf_Crab       |522  525  526 |                 |                |                      |
+|Closure            |OCC         |       |Offshore_Lobster    |533  534  537 |                 |                |                      |
+|StringLength       |            |       |Offshore_Crab       |538  539  541 |                 |                |                      |
+|MaxGearWSingleLine |            |       |EverythingButExempt |542  552  561 |                 |                |                      |
+|MaxRopeStrength    |            |       |Gillnet             |562  611  612 |                 |                |                      |
+|RopelessDevice     |            |       |BlueCrab            |613  614  615 |                 |                |                      |
+|NoAction           |            |       |OtherTrapPot        |616  621  622 |                 |                |                      |
+|                   |            |       |Dogfish             |623  625  626 |                 |                |                      |
+|                   |            |       |GB_SNE_CodPollock   |627  631  632 |                 |                |                      |
+|                   |            |       |GOM_CodPollock      |635  636  700 |                 |                |                      |
+|                   |            |       |GOM_Haddock         |701  702  706 |                 |                |                      |
+|                   |            |       |Monkfish            |707  708  709 |                 |                |                      |
+|                   |            |       |BlackSeaBass_Fed    |712  713  714 |                 |                |                      |
+|                   |            |       |                    |715  717  718 |                 |                |                      |
+|                   |            |       |                    |719  722  723 |                 |                |                      |
+|                   |            |       |                    |724  727  728 |                 |                |                      |
+|                   |            |       |                    |729  732  733 |                 |                |                      |
+|                   |            |       |                    |736  737  740 |                 |                |                      |
+|                   |            |       |                    |741           |                 |                |                      |
+
+
+## More background information on the model process:
+
+Because of both gear/trap reductions and how gear/traps are aggregated into strings/trawls, the model needs to start at the currency of gear/traps, then sequentially transition to strings/trawls, vertical lines, line diameters, lethality, and then risk based on whale co-occurrence. Detailed below are the steps the model goes through for a scenario.
+
+![Figure 7. Model flow chart using the lobster fishery as an example.](demo_figures/FlowChart.png)
+
+DST Model Steps:
+
+1.	Start with traps per grid by month. This is calculated from the Area 3 Vertical Line model as a function of the number of vertical lines and trawl lengths. For Area 3, this need to be modeled separately for the crab and lobster fishery with two different classes of lobster vessels.
+2.	Traps are removed or redistributed based on the locations and timing of seasonal closures (management option #1 above). We would need to consider a rough approach to how to model redistributing traps. We can start with a basic set of rules for now.
+3.	Traps are further removed due to trap reductions (management option #2). Easiest assumption is that traps will be removed proportionally over the entire management area.
+4.	Traps are converted to distribution of trawls based on existing empirical data or models of traps / trawl at the scale of stat areas and proposed management (#3 above).
+5.	Trawls are converted to vertical lines based on trawl length. Expected to be two vertical lines per trawl for all offshore areas but may be different for inshore areas with shorter trawls.
+6.	Number of vertical lines are further adjusted for any regulations on ropeless or timed-release fishing (#5 above). Given the technology available to the lobster fishery and other fisheries, it is improbable that these measures can be implemented immediately but it is appropriate to include this now in the model framework.
+7.	A distribution of line diameters for vertical lines is characterized based on observed relationships with trawl length and further modified based on management options (#4 above).
+8.	Line diameters are converted to lethality based on a model to be developed, possibly by polling the TRT.
+9.	Lethality for the grid cell is calculated as the product of line lethality and number of vertical lines.
+10.	Risk is calculated as the product of lethality and whale presence.
+11.	Grids are then aggregated to appropriate scales to get risk scores by 10min cells, stat areas, LMA’s, etc.
+12.	Aggregate risk scores are then be compared to a baseline risk value to determine risk reduction.
+
+
+*This repository is a scientific product and is not official communication of the National Oceanic and Atmospheric Administration, or the United States Department of Commerce. All NOAA GitHub project code is provided on an ‘as is’ basis and the user assumes responsibility for its use. Any claims against the Department of Commerce or Department of Commerce bureaus stemming from the use of this GitHub project will be governed by all applicable Federal law. Any reference to specific commercial products, processes, or services by service mark, trademark, manufacturer, or otherwise, does not constitute or imply their endorsement, recommendation or favoring by the Department of Commerce. The Department of Commerce seal and logo, or the seal and logo of a DOC bureau, shall not be used in any manner to imply endorsement of any commercial product or activity by DOC or the United States Government.*

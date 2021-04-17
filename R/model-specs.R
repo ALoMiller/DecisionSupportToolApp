@@ -31,7 +31,11 @@ Fishery <- c("NonExempt",
              "GOM_CodPollock",
              "GOM_Haddock",
              "Monkfish",
-             "BlackSeaBass_Fed")
+             "BlackSeaBass_Fed",
+             "Fed_ColPolHad",
+             "Fed_Monkfish",
+             "Fed_SpinyDogfish",
+             "Fed_WinterSkate")
 RopelessDevice <- c("TimedRelease",
                     "AcousticRelease")
 # select multiple

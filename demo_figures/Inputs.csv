@@ -1,0 +1,23 @@
+Action,LMAs,States,Fishery,StatArea,StringRegulation,RopelessDevice,Shapefiles
+Constraint_Fishery,A1,ME,NonExempt,464 465 467,Min,TimedRelease,3nmi_to_12nmi
+Constraint_Spatial,A2,NH,Exempt,511 512 513,Max,AcousticRelease,12nmi_to_EEZ_Boundary
+GearReduction,A2_3overlap,MA,Midshelf_Lobster,514 515 521,Exactly,,Coast_to_3nmi
+GearCap,A3,,Midshelf_Crab,522 525 526,,,
+Closure,OCC,,Offshore_Lobster,533 534 537,,,
+StringLength,,,Offshore_Crab,538 539 541,,,
+MaxGearWSingleLine,,,EverythingButExempt,542 552 561,,,
+MaxRopeStrength,,,Gillnet,562 611 612,,,
+RopelessDevice,,,BlueCrab,613 614 615,,,
+NoAction,,,OtherTrapPot,616 621 622,,,
+,,,Dogfish,623 625 626,,,
+,,,GB_SNE_CodPollock,627 631 632,,,
+,,,GOM_CodPollock,635 636 700,,,
+,,,GOM_Haddock,701 702 706,,,
+,,,Monkfish,707 708 709,,,
+,,,BlackSeaBass_Fed,712 713 714,,,
+,,,,715 717 718,,,
+,,,,719 722 723,,,
+,,,,724 727 728,,,
+,,,,729 732 733,,,
+,,,,736 737 740,,,
+,,,,741,,,

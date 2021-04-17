@@ -52,9 +52,12 @@ ui <- dashboardPage(
                     selectInput("whalemapname",
                                 "Select Whale Habitat Model:",
                                 selected = "",
-                                c("","Duke_HumpbackWhaleModel_v10_DSTv3.Rdata","Duke_HumpbackWhaleModel_v10_DSTv3_Expanded.Rdata",
-                                  "Duke_RightWhaleModel_v11_0309.Rdata","Duke_RightWhaleModel_v11_0318.Rdata",
-                                  "Duke_RightWhaleModel_v11_1018.Rdata","Duke_FinWhaleModel_v11.Rdata")),
+                                c("","Duke Humpback Model V10"="Duke_HumpbackWhaleModel_v10_DSTv3.Rdata",
+                                  "Duke Humpback Expanded Model V10"="Duke_HumpbackWhaleModel_v10_DSTv3_Expanded.Rdata",
+                                  "Duke Right Whale Model V11 (2003-2009)"="Duke_RightWhaleModel_v11_0309.Rdata",
+                                  "Duke Right Whale Model V11 (2003-2018)"="Duke_RightWhaleModel_v11_0318.Rdata",
+                                  "Duke Right Whale Model V11 (2010-2018)"="Duke_RightWhaleModel_v11_1018.Rdata",
+                                  "Duke Fin Whale Model V11"="Duke_FinWhaleModel_v11.Rdata")),
                     textInput("filename", label = "Enter new scenario name:", value = NULL)),
                 box(width=4,
                     textInput("comment", label = "Add scenario comments:", placeholder = "Enter text..."),
@@ -250,11 +253,12 @@ server <- function(input, output, session) {
   output$gearmap.ui <- renderUI({  #generates dynamic UI for fishery
     switch(input$maprefname,
            "Gillnet or Other Trap/Pot" = selectInput("gearmapname", "Select Gear Map:",
-                                                     choices = c("","GearMap_Gillnet_IEC_V3.0.0.Rdata",
-                                                                 "GearMap_OtherTrapPot_IEC_V3.0.0.Rdata")
+                                                     choices = c("","Gillnet Gear"="GearMap_Gillnet_IEC_V3.0.0.Rdata",
+                                                                 "Other Trap/Pot Gear"="GearMap_OtherTrapPot_IEC_V3.0.0.Rdata")
            ),
            "Lobster" = selectInput("gearmapname", "Select Gear Map:",
-                                   choices = c("","GearMap_Lobster_V3.0.0.Rdata","GearMap_Lobster_MassRMA_V3.0.0.Rdata")
+                                   choices = c("","Default Lobster Gear"="GearMap_Lobster_V3.0.0.Rdata",
+                                               "Lobster Gear Including CC Closure"="GearMap_Lobster_MassRMA_V3.0.0.Rdata")
            )
     )
   })
@@ -265,7 +269,7 @@ server <- function(input, output, session) {
     if (input$existing_scenarios == ""){
       
       rhandsontable(DF, stretchH = "all", readOnly  = F) %>% 
-        hot_cols(colWidths = c(100,50)) %>% 
+        hot_cols(colWidths = c(60,20,20,27,60,100,30,35,50,40,55,50,50,30,55)) %>% 
         hot_col(col = "Action", type = "dropdown", source = Action) %>% 
         hot_col(col = "LMA", type = "dropdown", source = LMA) %>% 
         hot_col(col = "State", type = "dropdown", source = State) %>% 
@@ -289,7 +293,7 @@ server <- function(input, output, session) {
       DF <- read.csv(paste0(here::here("InputSpreadsheets",input$existing_scenarios),".csv"))
       
       rhandsontable(DF, stretchH = "all", readOnly  = F) %>% 
-        hot_cols(colWidths = c(100,50)) %>% 
+        hot_cols(colWidths = c(60,20,20,27,60,100,30,35,50,40,55,50,50,30,55)) %>% 
         hot_col(col = "Action", type = "dropdown", source = Action) %>% 
         hot_col(col = "LMA", type = "dropdown", source = LMA) %>% 
         hot_col(col = "State", type = "dropdown", source = State) %>% 
@@ -311,14 +315,10 @@ server <- function(input, output, session) {
   observeEvent(input$filename, {
     
     #Prevent model run if no file is chosen and no custom input
-    if (is.null(input$hot)){
+    if (input$filename == "" | input$maprefname == "" | input$whalemapname == ""){
       shinyjs::disable("run")
       
-      #Prevent model run if custom parameters exist without a scenario name
-    } else if (input$filename == "" | input$gearmapname == "" | input$whalemapname == ""){
-      shinyjs::disable("run")
-      
-      #Otherwise run the model and save the ouput to csv
+    #Otherwise run the model and save the ouput to csv
     } else {
       shinyjs::enable("run")
     }
@@ -328,6 +328,7 @@ server <- function(input, output, session) {
   
   #Observes the "Run Model" button-------------------------------------------------------------------
   observeEvent(input$run, {
+    
     showNotification(" Running... ",duration=NULL,id="running",type="message")
     
     #Converts table input into something shiny can use 
@@ -403,7 +404,6 @@ server <- function(input, output, session) {
                       selected = input$filename)
     removeNotification(id="running")
     
-    
   })
   
   #View output tab-----------------------------------------------------------------------------------
@@ -444,8 +444,10 @@ server <- function(input, output, session) {
   })
   
   output$renderedReadme <- renderUI({           
-    includeHTML(rmarkdown::render(input = paste0(here::here(),"/README.md"), "html_document"))
+    includeHTML(rmarkdown::render(input = paste0(here::here(),"/README.Rmd"), "html_document"))
   })
+  outputOptions(output, 'renderedReadme', suspendWhenHidden=F)
+  
   session$onSessionEnded(function() {
     unlink(isolate(paste0(here::here(),'/www')),recursive=TRUE) #Removes www folder when Shiny session ends 
     #Collect files generated during app session to remove when app closes

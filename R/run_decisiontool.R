@@ -20,7 +20,7 @@ run_decisiontool <- function(HD=HD,InputSpreadsheetName="ScenarioTemplate_V3.0.1
     WhaleInputModel=WhaleMapName, ## only compatible with GearMap v3+
     
     ################# select model options ################--
-    CommentText="SHINY V3.0.6 TEST",
+    CommentText=CommentText,
     TestScenario=TRUE, ## run a test scenario or only a default baseline?
     CoOccurrence=FALSE, ## run co-occurrence only; no gear threat model (speeds up model run time)
     HighResolution=FALSE, ## Option to run in HighResolution mode. Slows model drammatically, not fully tested

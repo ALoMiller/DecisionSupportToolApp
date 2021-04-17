@@ -2,6 +2,8 @@ library(shinydashboard, quietly=TRUE)
 library(rhandsontable, quietly=TRUE)
 library(leaflet, quietly=TRUE)
 library(dplyr, quietly=TRUE)
+library(kableExtra, lib.loc = "/net/home10/amiller/R/x86_64-redhat-linux-gnu-library/3.6/")
+
 
 #Source helper functions
 HD="/net/shiny1/amiller/DST"
@@ -53,9 +55,12 @@ ui <- dashboardPage(
                     selectInput("whalemapname",
                                 "Select Whale Habitat Model:",
                                 selected = "",
-                                c("","Duke_HumpbackWhaleModel_v10_DSTv3.Rdata","Duke_HumpbackWhaleModel_v10_DSTv3_Expanded.Rdata",
-                                  "Duke_RightWhaleModel_v11_0309.Rdata","Duke_RightWhaleModel_v11_0318.Rdata",
-                                  "Duke_RightWhaleModel_v11_1018.Rdata","Duke_FinWhaleModel_v11.Rdata")),
+                                c("","Duke Humpback Model V10"="Duke_HumpbackWhaleModel_v10_DSTv3.Rdata",
+                                  "Duke Humpback Expanded Model V10"="Duke_HumpbackWhaleModel_v10_DSTv3_Expanded.Rdata",
+                                  "Duke Right Whale Model V11 (2003-2009)"="Duke_RightWhaleModel_v11_0309.Rdata",
+                                  "Duke Right Whale Model V11 (2003-2018)"="Duke_RightWhaleModel_v11_0318.Rdata",
+                                  "Duke Right Whale Model V11 (2010-2018)"="Duke_RightWhaleModel_v11_1018.Rdata",
+                                  "Duke Fin Whale Model V11"="Duke_FinWhaleModel_v11.Rdata")),
                     textInput("filename", label = "Enter new scenario name:", value = NULL)),
                 box(width=4,
                     textInput("comment", label = "Add scenario comments:", placeholder = "Enter text..."),
@@ -168,8 +173,6 @@ server <- function(input, output, session) {
         addPolygons(group = "gsc" ,data = GSC_Gillnet ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
                     weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3,
                     popup = "Great South Channel Restricted Trap/Pot/Gillnet Area") %>%
-        # addPolygons(group = "gsc" ,data = GSC_Trap ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
-        #             weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3, popup = GSC_Trap$AREANAME) %>%
         addPolygons(group = "gsc" ,data = GSC_Sliver ,stroke = TRUE, color = '#5a5a5a', opacity = 1.0, 
                     weight = 0.5, fillColor = "#dcdcdc", fillOpacity = 0.3, popup = GSC_Sliver$AREANAME) 
     } else {
@@ -246,25 +249,27 @@ server <- function(input, output, session) {
                       choices = c("",existing_input_scenarios),
                       selected = "")
   })
+  
   output$gearmap.ui <- renderUI({  #generates dynamic UI for fishery
     switch(input$maprefname,
            "Gillnet or Other Trap/Pot" = selectInput("gearmapname", "Select Gear Map:",
-                                                     choices = c("","GearMap_Gillnet_IEC_V3.0.0.Rdata",
-                                                                 "GearMap_OtherTrapPot_IEC_V3.0.0.Rdata")
+                                                     choices = c("","Gillnet Gear"="GearMap_Gillnet_IEC_V3.0.0.Rdata",
+                                                                "Other Trap/Pot Gear"="GearMap_OtherTrapPot_IEC_V3.0.0.Rdata")
            ),
            "Lobster" = selectInput("gearmapname", "Select Gear Map:",
-                                   choices = c("","GearMap_Lobster_V3.0.0.Rdata","GearMap_Lobster_MassRMA_V3.0.0.Rdata")
+                                   choices = c("","Default Lobster Gear"="GearMap_Lobster_V3.0.0.Rdata",
+                                              "Lobster Gear Including CC Closure"="GearMap_Lobster_MassRMA_V3.0.0.Rdata")
            )
     )
   })
-  
+
   #Specifies table layout for custom input parameters
   output$hot = renderRHandsontable({
     #Show blank template if no input file is chosen
     if (input$existing_scenarios == ""){
       
       rhandsontable(DF, stretchH = "all", readOnly  = F) %>% 
-        hot_cols(colWidths = c(100,50)) %>% 
+        hot_cols(colWidths = c(60,20,20,27,60,100,30,35,50,40,55,50,50,30,55)) %>% 
         hot_col(col = "Action", type = "dropdown", source = Action) %>% 
         hot_col(col = "LMA", type = "dropdown", source = LMA) %>% 
         hot_col(col = "State", type = "dropdown", source = State) %>% 
@@ -288,7 +293,7 @@ server <- function(input, output, session) {
       DF <- read.csv(paste0(HD,"/InputSpreadsheets/",input$existing_scenarios,".csv"))
       
       rhandsontable(DF, stretchH = "all", readOnly  = F) %>% 
-        hot_cols(colWidths = c(100,50)) %>% 
+        hot_cols(colWidths = c(60,20,20,27,60,100,30,35,50,40,55,50,50,30,55)) %>% 
         hot_col(col = "Action", type = "dropdown", source = Action) %>% 
         hot_col(col = "LMA", type = "dropdown", source = LMA) %>% 
         hot_col(col = "State", type = "dropdown", source = State) %>% 
@@ -307,14 +312,12 @@ server <- function(input, output, session) {
     }
   })
   
+
+  
   observeEvent(input$filename, {
-    
+   
     #Prevent model run if no file is chosen and no custom input
-    if (is.null(input$hot)){
-      shinyjs::disable("run")
-      
-      #Prevent model run if custom parameters exist without a scenario name
-    } else if (input$filename == "" | input$gearmapname == "" | input$whalemapname == ""){
+    if (input$filename == "" | input$maprefname == "" | input$whalemapname == ""){
       shinyjs::disable("run")
       
       #Otherwise run the model and save the ouput to csv
@@ -323,8 +326,15 @@ server <- function(input, output, session) {
     }
     
   })
+  
+  
  #Observes the "Run Model" button-------------------------------------------------------------------
   observeEvent(input$run, {
+    print(input$gearmapname)
+    print(input$whalemapname)
+    
+    #if(is.null(input$hot)&&input$filename!=""&&input$gearmapname!=""&&input$whalemapname!=""){
+      
     showNotification(" Running... ",duration=NULL,id="running",type="message")
     
     #Converts table input into something shiny can use 
@@ -381,8 +391,6 @@ server <- function(input, output, session) {
     message = function(m) {
       shinyjs::html(id = "run-text", html = paste0(m$message,"<br>"), add = TRUE)
     })
-    #creates the www directory for tags$iframe embedding pdf output files into the app
-    # if (!fs::dir_exists(paste0(HD,'/www'))) fs::dir_create(paste0(HD,'/www'))
     #move pdf output files into www directory
     file.copy(paste0(HD,'/Scenarios/',input$filename,'/',input$filename,'_GearRedistributionFigures.pdf'),
               paste0(HD,'/www/',input$filename,'_GearRedistributionFigures.pdf'), overwrite = TRUE)
@@ -401,7 +409,11 @@ server <- function(input, output, session) {
                       selected = input$filename)
     removeNotification(id="running")
     
-    
+    # }
+    # else
+    # {
+    #   showModal(modalDialog(title ="Warning!!!", "Please fill all the fields before you click the RUN buttion!!!"))
+    # }
   })
   
   #View output tab-----------------------------------------------------------------------------------
@@ -442,8 +454,9 @@ server <- function(input, output, session) {
   })
   
   output$renderedReadme <- renderUI({           
-    includeHTML(rmarkdown::render(input = paste0(HD,"/README.md"), "html_document"))
+    includeHTML(rmarkdown::render(input = paste0(HD,"/README.Rmd"), "html_document"))
   })
+  outputOptions(output, 'renderedReadme', suspendWhenHidden=F)
   session$onSessionEnded(function() {
     # unlink(isolate(paste0(HD,'/www')),recursive=TRUE) #Removes www folder when Shiny session ends
     # unlink(isolate(paste0(HD,'/InputSpreadsheets')),recursive=TRUE) #Removes InputSpreadsheets folder when Shiny session ends

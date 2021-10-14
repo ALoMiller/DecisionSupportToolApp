@@ -1,48 +1,14 @@
-<style type="text/css">
-.main-container {
-  max-width: 1800px;
-  margin-left: auto;
-  margin-right: auto;
-}
-</style>
-
 # Decision Support Tool
 #### **Atlantic Large Whale Take Reduction Team Decision Support Tool**
 
 ### What is this tool used for?
+The tool takes the following management measures and modesl how it would change risk to whales:
 
-The Decision Support Tool (DST) attempts to model the locations and gear configurations of fixed gear, including gillnets and trap/pot gear, and the co-located whale densities along the US east coast from Maine through most of Florida. For a model run, users select the spatial domain, fisheries of interest, whale species, and specify one or more management actions to simulate.
-
-Gillnet and trap/pot fisheries are condensed into target species groups where appropriate which are modeled separately to examine how different management strategies affect individual fisheries of interest.
-
-**The following fisheries are currently available in the DST**:
-
-Trap/Pot fisheries for state and federal fisheries:
-
-* Lobster
-* Fishpot
-* Whelkpot
-* Blue crab
-
-Gillnet fisheries for federal and some state waters:
-
-* Cod, haddock, pollock
-* Monkfish
-* Spiny Dogfish
-* Smooth Dogfish
-* Bluefish, Striped bass
-* Inshore demersals (croaker, black sea bass, porgy, kingfish)
-* Menhaden
-
-**The following management measures can be implemented spatially and on a monthly basis**:
-
-* Gear Reductions – removal of a portion of actively fished gear
-* Gear Caps – limitation of the amount of gear individual fishermen can fish
-* Spatial Closures – removal and redistribution of gear in a specified area
-* String / Trawl length measures – modification of the amount of gear in a string / trawl
-* Maximum String / Trawl – limits what can be fished with a single endline
-* Maximum Rope Strength – limit allowed for endlines
-
+1.	Seasonal Closures, either with gear removed from the water or allowed to redistribute.
+2.	Gear Reductions
+3.	Regulations in String Length
+4.	Regulations in vertical line characteristics
+5.	Implementation of ropeless or timed release technology
 
 ### How to use the tool:
 For users with [R](https://cran.r-project.org/) and the necessary packages installed on their computers, run the following code to initiate an [R shiny](https://shiny.rstudio.com/) interactive web application.
@@ -66,8 +32,6 @@ library(rmarkdown)
 library(geosphere)
 library(lattice)
 library(here)
-library(knitr)
-library(kableExtra)
 
     
 shiny::runGitHub("DecisionSupportToolApp", username = "ALoMiller", ref = "master")
@@ -80,22 +44,20 @@ shiny::runGitHub("DecisionSupportToolApp", username = "ALoMiller", ref = "master
 
 Once you have the app up and running, scenarios can be created with the following steps:
 
-1.  Choose to open or modify an existing scenario from the dropdown OR create a new scenario by adding actions to the interactive spreadsheet (more information on defining actions in the "Defining Scenarios" section below).
+1.  Choose to open or modify an existing scenario from the dropdown OR create a new scenario by adding actions to the interactive spreadsheet (more information on defining actions in the "Defining Scenarios"" section below).
 2.  Select the type of **Fishery** you are interested in. Based on that fishery, next choose a **Gear Map**. Next, select the **Whale Habitat Model** and enter a new name for your scenario.
 3.  Add comments to be noted in the output table (optional) and select from options to **Run a test scenario** (vs. just a default baseline), **Run co-occurrence only** (no gear threat model if checked), and **Run in high resolution** mode (slows model dramatically if checked).
-4.  Click **Run Model** to initiate and scroll down for model status updates and warnings which will print below.  
+4.  Click **Run Model** to initiate and scroll down for model status updates and warnings which will print below.
 
 ![Figure 1. Steps to run a new scenario.](demo_figures/CreateScenario.PNG)
 
 #### **Visualize Areas**
 
 To learn more about the spatial extent of different areas (e.g., LMA, StatArea, State waters, etc), click the **Visualize Areas** tab to explore the different spatial domains used in the model.
-
-![Figure 2. Visualize Areas viewing tool showing the labeled Statistical Areas available to the model.](demo_figures/MapVizStatAreas.PNG)  
+![Figure 2. Visualize Areas viewing tool showing the labeled Statistical Areas available to the model.](demo_figures/MapVizStatAreas.PNG)
 
 This map is interactive and can be zoomed and clicked on to learn more about a specific management area.
-
-![Figure 3. Visualize Areas viewing tool zoomed in to Maine DMR Zones displying the location of Zone C.](demo_figures/MapVizMaine.PNG)  
+![Figure 3. Visualize Areas viewing tool zoomed in to Maine DMR Zones displying the location of Zone C.](demo_figures/MapVizMaine.PNG)
 
 
 ### Evaluate model output
@@ -104,9 +66,9 @@ This map is interactive and can be zoomed and clicked on to learn more about a s
 
 Once the model finishes running, click on the **View Result Tables & Figures** tab to view results. If more than one scenario has been run during the session, use the **Choose Scenario** dropdown to switch between model results. Click on the various tabs below to view a pdf of the output Tables, Gear Redistribution Figures, Default Figures, Scenario Figures, and Threat Figures. The viewer allows the user to zoom on figures, download, and print. 
 
-![Figure 4. Example output table for a scenario.](demo_figures/TableOutput.PNG)
+![Figure 4. Output tables for a scenario.](demo_figures/TableOutput.PNG)
 
-![Figure 5. Example output figures for a scenario.](demo_figures/FigOutput.PNG)
+![Figure 5. Output tables and figures for a scenario.](demo_figures/FigOutput.PNG)
 
 
 ### Defining Scenarios								
@@ -140,26 +102,18 @@ Fill out the rest of the record with the desired inputs. Note that not all colum
 *	Months - Comma delimited text string of months to apply the action over						
 *	Percentage - Input percentages for action (i.e. gear reductions, etc.)	
 
-```{r, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
-library(dplyr)
-y <- read.csv(here::here("demo_figures/Lookup.csv"))
-y <- y %>%
-     mutate_at(vars(-Action), function(x){
-       recode(x,"0"="0","1"="1","2"="2")}) %>%
-     as.data.frame()
 
-y %>%
-  mutate_at(vars(-Action), function(x){
-  kableExtra::cell_spec(x, format = "html", background = factor(x,c('0','1','2'),c("transparent", "#e9c46a", "#2a9d8f")),
-                        color = factor(x,c('0','1','2'),c("transparent", "#e9c46a", "#2a9d8f")), align= 'c')}) %>%
-  knitr::kable(format="markdown", escape=FALSE, align=c('l','c','c','c','c','c','c','c','c','c','c','c','c','c'))
- 
+![Figure 6. Key defines optional and required fields for each action item in yellow and blue respectively.](demo_figures/InputLookup.PNG)
+
+```{r, eval=TRUE}
+
+y <- read.csv(here::here("demo_figures/Lookup.csv"))
+knitr::kable(y, format="markdown") %>%
+  kableExtra::cell_spec(2:14, background = factor(df, c(0, 1, 2), c("white", "yellow", "blue")))
+
 ```
-Figure 6. Key defining optional and required fields for each scenario Action item in yellow and blue, respectively.
 
 ### Example inputs and interpretation
-
-Below are a few examples of **Action** items added to the input spreadsheet and how to interpret and fill out the cells for the remaining columns in that row.
 
 #### **Spatial constraints**
 
@@ -199,40 +153,81 @@ This removes a percentage of traps from a spatial domain. The following would im
 
 All settings that are currently available can be seen below.
 
-|Action             |LMAs        |States |Fishery             |StatArea      |StringRegulation |RopelessDevice  |Shapefiles            |
-|:------------------|:-----------|:------|:-------------------|:-------------|:----------------|:---------------|:---------------------|
-|Constraint_Fishery |A1          |ME     |NonExempt           |464  465  467 |Min              |TimedRelease    |3nmi_to_12nmi         |
-|Constraint_Spatial |A2          |NH     |Exempt              |511  512  513 |Max              |AcousticRelease |12nmi_to_EEZ_Boundary |
-|GearReduction      |A2_3overlap |MA     |Midshelf_Lobster    |514  515  521 |Exactly          |                |Coast_to_3nmi         |
-|GearCap            |A3          |       |Midshelf_Crab       |522  525  526 |                 |                |                      |
-|Closure            |OCC         |       |Offshore_Lobster    |533  534  537 |                 |                |                      |
-|StringLength       |            |       |Offshore_Crab       |538  539  541 |                 |                |                      |
-|MaxGearWSingleLine |            |       |EverythingButExempt |542  552  561 |                 |                |                      |
-|MaxRopeStrength    |            |       |Gillnet             |562  611  612 |                 |                |                      |
-|RopelessDevice     |            |       |BlueCrab            |613  614  615 |                 |                |                      |
-|NoAction           |            |       |OtherTrapPot        |616  621  622 |                 |                |                      |
-|                   |            |       |Dogfish             |623  625  626 |                 |                |                      |
-|                   |            |       |GB_SNE_CodPollock   |627  631  632 |                 |                |                      |
-|                   |            |       |GOM_CodPollock      |635  636  700 |                 |                |                      |
-|                   |            |       |GOM_Haddock         |701  702  706 |                 |                |                      |
-|                   |            |       |Monkfish            |707  708  709 |                 |                |                      |
-|                   |            |       |BlackSeaBass_Fed    |712  713  714 |                 |                |                      |
-|                   |            |       |                    |715  717  718 |                 |                |                      |
-|                   |            |       |                    |719  722  723 |                 |                |                      |
-|                   |            |       |                    |724  727  728 |                 |                |                      |
-|                   |            |       |                    |729  732  733 |                 |                |                      |
-|                   |            |       |                    |736  737  740 |                 |                |                      |
-|                   |            |       |                    |741           |                 |                |                      |
 
+|Action             |LMAs        |States |Fishery             | StatArea|StringRegulation |RopelessDevice  |Shapefiles            |
+|:------------------|:-----------|:------|:-------------------|--------:|:----------------|:---------------|:---------------------|
+|Constraint_Fishery |A1          |ME     |NonExempt           |      464|Min              |TimedRelease    |3nmi_to_12nmi         |
+|Constraint_Spatial |A2          |NH     |Exempt              |      465|Max              |AcousticRelease |12nmi_to_EEZ_Boundary |
+|GearReduction      |A2_3overlap |MA     |Midshelf_Lobster    |      467|Exactly          |                |Coast_to_3nmi         |
+|GearCap            |A3          |       |Midshelf_Crab       |      511|                 |                |                      |
+|Closure            |OCC         |       |Offshore_Lobster    |      512|                 |                |                      |
+|StringLength       |            |       |Offshore_Crab       |      513|                 |                |                      |
+|MaxGearWSingleLine |            |       |EverythingButExempt |      514|                 |                |                      |
+|MaxRopeStrength    |            |       |Gillnet             |      515|                 |                |                      |
+|RopelessDevice     |            |       |BlueCrab            |      521|                 |                |                      |
+|NoAction           |            |       |OtherTrapPot        |      522|                 |                |                      |
+|                   |            |       |Dogfish             |      525|                 |                |                      |
+|                   |            |       |GB_SNE_CodPollock   |      526|                 |                |                      |
+|                   |            |       |GOM_CodPollock      |      533|                 |                |                      |
+|                   |            |       |GOM_Haddock         |      534|                 |                |                      |
+|                   |            |       |Monkfish            |      537|                 |                |                      |
+|                   |            |       |BlackSeaBass_Fed    |      538|                 |                |                      |
+|                   |            |       |                    |      539|                 |                |                      |
+|                   |            |       |                    |      541|                 |                |                      |
+|                   |            |       |                    |      542|                 |                |                      |
+|                   |            |       |                    |      552|                 |                |                      |
+|                   |            |       |                    |      561|                 |                |                      |
+|                   |            |       |                    |      562|                 |                |                      |
+|                   |            |       |                    |      611|                 |                |                      |
+|                   |            |       |                    |      612|                 |                |                      |
+|                   |            |       |                    |      613|                 |                |                      |
+|                   |            |       |                    |      614|                 |                |                      |
+|                   |            |       |                    |      615|                 |                |                      |
+|                   |            |       |                    |      616|                 |                |                      |
+|                   |            |       |                    |      621|                 |                |                      |
+|                   |            |       |                    |      622|                 |                |                      |
+|                   |            |       |                    |      623|                 |                |                      |
+|                   |            |       |                    |      625|                 |                |                      |
+|                   |            |       |                    |      626|                 |                |                      |
+|                   |            |       |                    |      627|                 |                |                      |
+|                   |            |       |                    |      631|                 |                |                      |
+|                   |            |       |                    |      632|                 |                |                      |
+|                   |            |       |                    |      635|                 |                |                      |
+|                   |            |       |                    |      636|                 |                |                      |
+|                   |            |       |                    |      700|                 |                |                      |
+|                   |            |       |                    |      701|                 |                |                      |
+|                   |            |       |                    |      702|                 |                |                      |
+|                   |            |       |                    |      706|                 |                |                      |
+|                   |            |       |                    |      707|                 |                |                      |
+|                   |            |       |                    |      708|                 |                |                      |
+|                   |            |       |                    |      709|                 |                |                      |
+|                   |            |       |                    |      712|                 |                |                      |
+|                   |            |       |                    |      713|                 |                |                      |
+|                   |            |       |                    |      714|                 |                |                      |
+|                   |            |       |                    |      715|                 |                |                      |
+|                   |            |       |                    |      717|                 |                |                      |
+|                   |            |       |                    |      718|                 |                |                      |
+|                   |            |       |                    |      719|                 |                |                      |
+|                   |            |       |                    |      722|                 |                |                      |
+|                   |            |       |                    |      723|                 |                |                      |
+|                   |            |       |                    |      724|                 |                |                      |
+|                   |            |       |                    |      727|                 |                |                      |
+|                   |            |       |                    |      728|                 |                |                      |
+|                   |            |       |                    |      729|                 |                |                      |
+|                   |            |       |                    |      732|                 |                |                      |
+|                   |            |       |                    |      733|                 |                |                      |
+|                   |            |       |                    |      736|                 |                |                      |
+|                   |            |       |                    |      737|                 |                |                      |
+|                   |            |       |                    |      740|                 |                |                      |
+|                   |            |       |                    |      741|                 |                |                      |
 
-## More background information on the model process:
+## More background information on the tool:
 
-Because of both gear/trap reductions and how gear/traps are aggregated into strings/trawls, the model needs to start at the currency of gear/traps, then sequentially transition to strings/trawls, vertical lines, line diameters, lethality, and then risk based on whale co-occurrence. Detailed below are the steps the model goes through for a scenario.
+First, because both trap reductions and how traps are aggregated into trawls, the model needs to start at the currency of traps, then sequentially transition to trawls, vertical lines, line diameters, lethality, and then risk based on whale co-occurrence.
 
-![Figure 7. Model flow chart using the lobster fishery as an example.](demo_figures/FlowChart.png)
+Second, it seems appropriate to model these processes at a scale of a 1Nm grid, as this is the finest scale that the IEc model employs, allows splitting stat areas along LMA lines, and allows some added precision to modeling the boundaries of closed areas. Much of the other model inputs do not have this resolution so we’ll have to accept simple down-scaling of these processes.
 
-DST Model Steps:
-
+Tool layout:
 1.	Start with traps per grid by month. This is calculated from the Area 3 Vertical Line model as a function of the number of vertical lines and trawl lengths. For Area 3, this need to be modeled separately for the crab and lobster fishery with two different classes of lobster vessels.
 2.	Traps are removed or redistributed based on the locations and timing of seasonal closures (management option #1 above). We would need to consider a rough approach to how to model redistributing traps. We can start with a basic set of rules for now.
 3.	Traps are further removed due to trap reductions (management option #2). Easiest assumption is that traps will be removed proportionally over the entire management area.

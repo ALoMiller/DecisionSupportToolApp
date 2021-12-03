@@ -333,8 +333,18 @@ server <- function(input, output, session) {
     print(input$gearmapname)
     print(input$whalemapname)
     
-    #if(is.null(input$hot)&&input$filename!=""&&input$gearmapname!=""&&input$whalemapname!=""){
-      
+    # #CHECK filename not already used
+    # template = "ScenarioTemplate_V3.0.1"
+    # sessionfiles = list.files(paste0(HD,"/Scenarios/"))
+    # filestoremove = setdiff(sessionfiles,template)
+    # 
+    # if(input$filename %in% filestoremove){
+    #   showNotification("Please choose a scenario filename that doesn't already exist!"
+    #                    ,id="incorrectFilename",duration=NULL,type="error")
+    # } else removeNotification(id="incorrectFilename")
+    # #req(input$filename)#,cancelOutput = TRUE)
+    
+    
     showNotification(" Running... ",duration=NULL,id="running",type="message")
     
     #Converts table input into something shiny can use 
